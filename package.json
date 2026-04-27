@@ -12,12 +12,16 @@
     "type": "git",
     "url": "https://github.com/FIPS-APP/mcp-design-system.git"
   },
+  "bin": {
+    "mcp-fips-ds": "./packages/mcp/dist/server.js"
+  },
   "scripts": {
     "build": "npm --workspace @fips-app/mcp-design-system run build",
     "dev": "npm --workspace @fips-app/mcp-design-system run dev",
     "smoke": "npm --workspace @fips-app/mcp-design-system exec tsx scripts/smoke.ts",
     "typecheck": "npm --workspace @fips-app/mcp-design-system run typecheck",
-    "inspect": "npm --workspace @fips-app/mcp-design-system run inspect"
+    "inspect": "npm --workspace @fips-app/mcp-design-system run inspect",
+    "prepare": "npm run build"
   },
   "engines": {
     "node": ">=20"

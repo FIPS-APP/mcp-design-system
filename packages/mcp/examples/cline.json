@@ -1,0 +1,10 @@
+{
+  "_comment_": "For Cline (VS Code), open the MCP settings UI and add a server with command 'npx' and args ['-y', '@fips-app/mcp-design-system']. Or paste the entry below directly into the Cline MCP config file.",
+  "mcpServers": {
+    "fips-ds": {
+      "command": "npx",
+      "args": ["-y", "@fips-app/mcp-design-system"],
+      "disabled": false
+    }
+  }
+}

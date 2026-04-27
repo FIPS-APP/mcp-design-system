@@ -1,0 +1,9 @@
+{
+  "_comment_": "Add this entry to .cursor/mcp.json in your project root or to ~/.cursor/mcp.json globally.",
+  "mcpServers": {
+    "fips-ds": {
+      "command": "npx",
+      "args": ["-y", "@fips-app/mcp-design-system"]
+    }
+  }
+}

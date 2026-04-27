@@ -1,0 +1,37 @@
+{
+  "name": "@fips-app/eslint-plugin-ds-governance",
+  "version": "0.1.0",
+  "description": "ESLint plugin enforcing FIPS Design System governance — blocks visual className overrides on governed primitives so callers route visual changes through official variants.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "design-system",
+    "fips",
+    "ds-fips",
+    "governance"
+  ],
+  "peerDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

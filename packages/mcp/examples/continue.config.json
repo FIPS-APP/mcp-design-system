@@ -1,0 +1,14 @@
+{
+  "_comment_": "Add the experimental.modelContextProtocolServers entry to your Continue config (~/.continue/config.json). Continue v0.9.x+ supports MCP via this key.",
+  "experimental": {
+    "modelContextProtocolServers": [
+      {
+        "transport": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@fips-app/mcp-design-system"]
+        }
+      }
+    ]
+  }
+}

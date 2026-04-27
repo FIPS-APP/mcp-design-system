@@ -1,0 +1,600 @@
+{
+  "schemaVersion": "1.0.0",
+  "dsVersion": "0.4.1",
+  "generatedAt": "2026-04-27T20:44:29.930Z",
+  "tokens": {
+    "palette": {
+      "azulProfundo": "#004B9B",
+      "azulProfundoDark": "#002A68",
+      "cinzaChumbo": "#333B41",
+      "cinzaMetal": "#C0CCD2",
+      "azulIntermediario": "#658EC9",
+      "azulCeuClaro": "#D3E3F4",
+      "amareloPastel": "#FFE4B8",
+      "azulCeu": "#93BDE4",
+      "azulCeuProfundo": "#0090D0",
+      "amareloOuro": "#FDC24E",
+      "amareloOuroEscuro": "#F6921E",
+      "verdeClaro": "#8BE5AD",
+      "verdeFloresta": "#00C64C",
+      "verdeFlorestaEscuro": "#00904C",
+      "branco": "#FFFFFF",
+      "neutroClaro": "#E8EBFF"
+    },
+    "semantic": {
+      "light": {
+        "primary": "#004B9B",
+        "primaryHover": "#002A68",
+        "secondary": "#0090D0",
+        "accent": "#FDC24E",
+        "accentStrong": "#F6921E",
+        "success": "#00C64C",
+        "successStrong": "#00904C",
+        "info": "#93BDE4",
+        "surface": "#FFFFFF",
+        "surfaceMuted": "#E8EBFF",
+        "border": "#C0CCD2",
+        "foreground": "#333B41",
+        "foregroundMuted": "#4b5563",
+        "sidebar": "#004B9B",
+        "sidebarMuted": "#002A68"
+      },
+      "dark": {
+        "surface": "#222222",
+        "surfaceSoft": "#252525",
+        "surfaceMuted": "#1A1A1A",
+        "border": "#2E2E2E",
+        "borderStrong": "#3a3a3a",
+        "foreground": "#E2E2E8",
+        "foregroundMuted": "#A1A1AA",
+        "primary": "#93BDE4",
+        "primaryHover": "#658EC9",
+        "secondary": "#0090D0",
+        "accent": "#FDC24E",
+        "accentStrong": "#F6921E",
+        "success": "#8BE5AD",
+        "successStrong": "#00C64C",
+        "danger": "#FCA5A5",
+        "info": "#93BDE4",
+        "warning": "#FDC24E",
+        "sidebar": "#1A1A1A",
+        "sidebarDeep": "#0a0c10",
+        "sidebarSoft": "#222222",
+        "inputBorder": "#3a3a3a",
+        "inputBorderHover": "#4a4a4a",
+        "inputBorderFocus": "#93BDE4",
+        "inputBg": "#252525",
+        "badgeSuccessBg": "rgba(0,198,76,0.14)",
+        "badgeWarningBg": "rgba(246,146,30,0.14)",
+        "badgeDangerBg": "rgba(239,68,68,0.14)",
+        "badgeInfoBg": "rgba(147,189,228,0.14)"
+      }
+    },
+    "cssVars": {
+      "theme": {
+        "--font-sans": "'Open Sans', ui-sans-serif, system-ui, sans-serif",
+        "--font-heading": "'Saira Expanded', 'Open Sans', ui-sans-serif, system-ui, sans-serif",
+        "--color-fips-blue-950": "#002a68",
+        "--color-fips-blue-900": "#004b9b",
+        "--color-fips-blue-700": "#658ec9",
+        "--color-fips-blue-400": "#93bde4",
+        "--color-fips-blue-200": "#d3e3f4",
+        "--color-fips-sky-600": "#0090d0",
+        "--color-fips-yellow-400": "#fdc24e",
+        "--color-fips-yellow-600": "#f6921e",
+        "--color-fips-yellow-100": "#ffe4b8",
+        "--color-fips-green-500": "#00c64c",
+        "--color-fips-green-700": "#00904c",
+        "--color-fips-green-300": "#8be5ad",
+        "--color-fips-red-600": "#ef4444",
+        "--color-fips-red-100": "#fee2e2",
+        "--color-fips-orange-100": "#fff0d6",
+        "--color-fips-gray-900": "#333b41",
+        "--color-fips-gray-400": "#c0ccd2",
+        "--color-fips-neutral-100": "#e8ebff",
+        "--color-fips-neutral-50": "#f5f8fc",
+        "--color-fips-neutral-25": "#fbfdff",
+        "--radius-sm": "0.25rem",
+        "--radius-md": "0.375rem",
+        "--radius-lg": "0.5rem",
+        "--radius-xl": "0.75rem",
+        "--radius-2xl": "1rem",
+        "--shadow-field": "0 1px 2px rgb(15 23 42 / 0.04), inset 0 1px 2px rgb(15 23 42 / 0.03)",
+        "--shadow-card": "0 2px 8px rgb(15 23 42 / 0.04), 0 10px 24px rgb(15 23 42 / 0.06)",
+        "--shadow-card-hover": "0 8px 22px rgb(15 23 42 / 0.08), 0 18px 38px rgb(0 75 155 / 0.08)",
+        "--shadow-elevated": "0 22px 64px rgb(0 75 155 / 0.18)",
+        "--shadow-float": "0 12px 36px rgb(15 23 42 / 0.12)"
+      },
+      "root": {
+        "--color-primary": "var(--color-fips-blue-900)",
+        "--color-primary-hover": "var(--color-fips-blue-950)",
+        "--color-secondary": "var(--color-fips-sky-600)",
+        "--color-secondary-hover": "#007ab1",
+        "--color-accent": "var(--color-fips-yellow-400)",
+        "--color-accent-strong": "var(--color-fips-yellow-600)",
+        "--color-success": "var(--color-fips-green-500)",
+        "--color-success-strong": "var(--color-fips-green-700)",
+        "--color-warning": "var(--color-fips-yellow-600)",
+        "--color-danger": "var(--color-fips-red-600)",
+        "--color-surface": "#ffffff",
+        "--color-surface-soft": "var(--color-fips-neutral-25)",
+        "--color-surface-muted": "var(--color-fips-neutral-50)",
+        "--color-border": "#d7e0ea",
+        "--color-border-strong": "var(--color-fips-gray-400)",
+        "--color-fg": "var(--color-fips-gray-900)",
+        "--color-fg-muted": "#6b7784",
+        "--color-ring": "var(--color-fips-sky-600)",
+        "--color-badge-warning-bg": "var(--color-fips-orange-100)",
+        "--color-badge-danger-bg": "var(--color-fips-red-100)",
+        "--color-sidebar": "var(--color-fips-blue-950)",
+        "--color-sidebar-deep": "var(--color-fips-blue-950)",
+        "--color-sidebar-soft": "var(--color-fips-blue-900)",
+        "--color-gov-azul-profundo": "#004B9B",
+        "--color-gov-azul-escuro": "#002A68",
+        "--color-gov-azul-claro": "#658EC9",
+        "--color-gov-verde-escuro": "#00904C",
+        "--color-gov-gradient-from": "#004B9B",
+        "--color-gov-gradient-to": "#002A68"
+      },
+      "dark": {
+        "--color-primary": "var(--color-fips-blue-900)",
+        "--color-primary-hover": "var(--color-fips-blue-950)",
+        "--color-secondary": "var(--color-fips-sky-600)",
+        "--color-secondary-hover": "#007ab1",
+        "--color-accent": "var(--color-fips-yellow-400)",
+        "--color-accent-strong": "var(--color-fips-yellow-600)",
+        "--color-success": "var(--color-fips-green-500)",
+        "--color-success-strong": "var(--color-fips-green-700)",
+        "--color-warning": "var(--color-fips-yellow-600)",
+        "--color-danger": "var(--color-fips-red-600)",
+        "--color-surface": "#222222",
+        "--color-surface-soft": "#252525",
+        "--color-surface-muted": "#1A1A1A",
+        "--color-border": "#2E2E2E",
+        "--color-border-strong": "#3a3a3a",
+        "--color-fg": "#E2E2E8",
+        "--color-fg-muted": "#A1A1AA",
+        "--color-ring": "var(--color-fips-yellow-600)",
+        "--color-badge-warning-bg": "rgba(246, 146, 30, 0.14)",
+        "--color-badge-danger-bg": "rgba(239, 68, 68, 0.14)",
+        "--color-sidebar": "var(--color-fips-blue-950)",
+        "--color-sidebar-deep": "var(--color-fips-blue-950)",
+        "--color-sidebar-soft": "var(--color-fips-blue-900)",
+        "--color-gov-azul-profundo": "#93BDE4",
+        "--color-gov-azul-escuro": "#658EC9",
+        "--color-gov-azul-claro": "#93BDE4",
+        "--color-gov-verde-escuro": "#8BE5AD",
+        "--color-gov-gradient-from": "#333B41",
+        "--color-gov-gradient-to": "#2a2f35"
+      }
+    },
+    "spacing": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12,
+      16,
+      20,
+      24
+    ],
+    "typography": {
+      "families": {
+        "heading": "\"Saira Expanded\", \"Open Sans\", system-ui, sans-serif",
+        "body": "\"Open Sans\", system-ui, sans-serif",
+        "mono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+      },
+      "scale": {
+        "display": "text-4xl font-semibold tracking-tight md:text-5xl",
+        "h1": "text-3xl font-semibold tracking-tight md:text-4xl",
+        "h2": "text-2xl font-semibold tracking-tight",
+        "h3": "text-xl font-semibold",
+        "lead": "text-lg text-[var(--color-fg-muted)]",
+        "body": "text-base leading-[1.5]",
+        "small": "text-sm text-[var(--color-fg-muted)]",
+        "caption": "text-xs text-[var(--color-fg-muted)]"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Button",
+      "importPath": "src/components/ui/button.tsx",
+      "governed": true,
+      "variants": {
+        "variant": [
+          "primary",
+          "secondary",
+          "outline",
+          "ghost",
+          "accent",
+          "inverseOutline",
+          "success",
+          "ouro",
+          "danger",
+          "link"
+        ],
+        "size": [
+          "sm",
+          "md",
+          "lg",
+          "icon",
+          "iconSm"
+        ]
+      },
+      "defaultVariants": {
+        "variant": "primary",
+        "size": "md"
+      },
+      "subComponents": [
+        "ButtonVariantProps",
+        "ButtonProps"
+      ]
+    },
+    {
+      "name": "Badge",
+      "importPath": "src/components/ui/badge.tsx",
+      "governed": false,
+      "variants": {
+        "variant": [
+          "default",
+          "secondary",
+          "success",
+          "warning",
+          "danger",
+          "outline",
+          "info"
+        ]
+      },
+      "defaultVariants": {
+        "variant": "default"
+      },
+      "subComponents": [
+        "BadgeVariantProps",
+        "BadgeProps"
+      ]
+    },
+    {
+      "name": "Card",
+      "importPath": "src/components/ui/card.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "CardContent",
+        "CardDescription",
+        "CardFooter",
+        "CardHeader",
+        "CardTitle"
+      ]
+    },
+    {
+      "name": "Dialog",
+      "importPath": "src/components/ui/dialog.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ]
+    },
+    {
+      "name": "Drawer",
+      "importPath": "src/components/ui/drawer.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "DrawerClose",
+        "DrawerContent",
+        "DrawerDescription",
+        "DrawerHeader",
+        "DrawerOverlay",
+        "DrawerPortal",
+        "DrawerTitle",
+        "DrawerTrigger"
+      ]
+    },
+    {
+      "name": "Field",
+      "importPath": "src/components/ui/field.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "FieldHint",
+        "FieldLabel",
+        "FieldMessage",
+        "FieldDensity",
+        "FieldInset",
+        "FieldProps",
+        "FieldHintProps",
+        "FieldLabelProps",
+        "FieldMessageProps",
+        "FieldTrigger",
+        "FieldTriggerProps"
+      ]
+    },
+    {
+      "name": "FieldTrigger",
+      "importPath": "src/components/ui/field-trigger.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "FieldTriggerProps"
+      ]
+    },
+    {
+      "name": "Input",
+      "importPath": "src/components/ui/input.tsx",
+      "governed": true,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "InputProps",
+        "InputGroup",
+        "InputGroupAddon",
+        "InputGroupButton",
+        "InputGroupText",
+        "InputGroupInput",
+        "InputGroupTextarea"
+      ]
+    },
+    {
+      "name": "InputGroup",
+      "importPath": "src/components/ui/input-group.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "InputGroupAddon",
+        "InputGroupButton",
+        "InputGroupText",
+        "InputGroupInput",
+        "InputGroupTextarea"
+      ]
+    },
+    {
+      "name": "Progress",
+      "importPath": "src/components/ui/progress.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "ProgressProps"
+      ]
+    },
+    {
+      "name": "Select",
+      "importPath": "src/components/ui/select.tsx",
+      "governed": true,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "SelectProps"
+      ]
+    },
+    {
+      "name": "Table",
+      "importPath": "src/components/ui/table.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "TableBody",
+        "TableCell",
+        "TableEmpty",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ]
+    },
+    {
+      "name": "Tabs",
+      "importPath": "src/components/ui/tabs.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "TabsContent",
+        "TabsList",
+        "TabsTrigger"
+      ]
+    },
+    {
+      "name": "Textarea",
+      "importPath": "src/components/ui/textarea.tsx",
+      "governed": true,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "TextareaProps"
+      ]
+    },
+    {
+      "name": "Tooltip",
+      "importPath": "src/components/ui/tooltip.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "TooltipContent",
+        "TooltipProvider",
+        "TooltipTrigger"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "id": "application-shell",
+      "name": "ApplicationShellDemo",
+      "file": "src/docs/pages/patterns/ApplicationShellDemo.tsx",
+      "summary": null
+    },
+    {
+      "id": "certificados",
+      "name": "CertificadosDemo",
+      "file": "src/docs/pages/patterns/CertificadosDemo.tsx",
+      "summary": "Lista densa com KPIs, busca, filtros por segmento e linhas com realce semântico — alinhado a gestão documental."
+    },
+    {
+      "id": "dashboard",
+      "name": "DashboardDemo",
+      "file": "src/docs/pages/patterns/DashboardDemo.tsx",
+      "summary": null
+    },
+    {
+      "id": "data-listing",
+      "name": "DataListingDemo",
+      "file": "src/docs/pages/patterns/DataListingDemo.tsx",
+      "summary": null
+    },
+    {
+      "id": "form-workspace",
+      "name": "FormWorkspaceDemo",
+      "file": "src/docs/pages/patterns/FormWorkspaceDemo.tsx",
+      "summary": null
+    },
+    {
+      "id": "hero-banner",
+      "name": "HeroBannerDoc",
+      "file": "src/docs/pages/patterns/HeroBannerDoc.tsx",
+      "summary": null
+    },
+    {
+      "id": "hero-header",
+      "name": "HeroHeaderDoc",
+      "file": "src/docs/pages/patterns/HeroHeaderDoc.tsx",
+      "summary": null
+    },
+    {
+      "id": "modal-form",
+      "name": "ModalFormDemo",
+      "file": "src/docs/pages/patterns/ModalFormDemo.tsx",
+      "summary": "Formulário em duas colunas com abas superiores, seletor de prioridade com dots, barra de progresso, chips de responsável e upload de documentos — referência oficial baseada no padrão CONTPIX, composta apenas com primitivas do DS-FIPS."
+    },
+    {
+      "id": "modal-workflow",
+      "name": "ModalWorkflowDemo",
+      "file": "src/docs/pages/patterns/ModalWorkflowDemo.tsx",
+      "summary": "Modal operacional extraído do TaskModal.tsx (CONTPIX). Reprodução fiel do design-system.md — tabs segmentadas, grid de campos com ícones, prioridade com dots, slider de progresso, chips de responsável e área de anexos."
+    }
+  ],
+  "governance": {
+    "plugin": "@fips-app/eslint-plugin-ds-governance",
+    "ruleName": "governance/no-visual-overrides",
+    "governedComponents": [
+      "Button",
+      "Input",
+      "Select",
+      "Textarea",
+      "TabsList",
+      "TabsTrigger"
+    ],
+    "blockedClassPrefixPattern": "^(?:bg-|text-|border(?:$|-)|rounded(?:$|-)|shadow(?:$|-)|h(?:$|-)|min-h(?:$|-)|max-h(?:$|-)|p(?:$|-|x-|y-|t-|r-|b-|l-)|font(?:$|-)|leading(?:$|-)|tracking(?:$|-)|ring(?:$|-)|opacity(?:$|-))",
+    "nonNegotiables": [
+      "Headings use Saira Expanded; body copy uses Open Sans.",
+      "Stay inside the FIPS palette: deep institutional blue for structure, gold/orange for accents, restrained neutrals.",
+      "Use PageHero for module headers; use Field + Input/Select/Textarea for forms.",
+      "Do not create local visual overrides for radius, shadow, border, spacing, or color to satisfy a single screen — promote the need to a CVA variant."
+    ]
+  },
+  "exports": {
+    "barrel": [
+      "AdminTableColumnItem",
+      "AdminTableColumnMenu",
+      "AdminTableCompanyCell",
+      "AdminTablePagination",
+      "AdminTableSortDirection",
+      "AdminTableSortHeader",
+      "AdminTableStatusDots",
+      "AdminTableStatusTone",
+      "Badge",
+      "BadgeProps",
+      "BadgeVariantProps",
+      "Button",
+      "ButtonProps",
+      "ButtonVariantProps",
+      "Card",
+      "CardContent",
+      "CardDescription",
+      "CardFooter",
+      "CardHeader",
+      "CardTitle",
+      "Dialog",
+      "DialogClose",
+      "DialogContent",
+      "DialogDescription",
+      "DialogFooter",
+      "DialogHeader",
+      "DialogOverlay",
+      "DialogPortal",
+      "DialogTitle",
+      "DialogTrigger",
+      "Drawer",
+      "DrawerClose",
+      "DrawerContent",
+      "DrawerDescription",
+      "DrawerHeader",
+      "DrawerOverlay",
+      "DrawerPortal",
+      "DrawerTitle",
+      "DrawerTrigger",
+      "Field",
+      "FieldDensity",
+      "FieldHint",
+      "FieldHintProps",
+      "FieldInset",
+      "FieldLabel",
+      "FieldLabelProps",
+      "FieldMessage",
+      "FieldMessageProps",
+      "FieldProps",
+      "FieldTrigger",
+      "FieldTriggerProps",
+      "Input",
+      "InputGroup",
+      "InputGroupAddon",
+      "InputGroupButton",
+      "InputGroupInput",
+      "InputGroupText",
+      "InputGroupTextarea",
+      "InputProps",
+      "Progress",
+      "ProgressProps",
+      "Select",
+      "SelectProps",
+      "Table",
+      "TableBody",
+      "TableCell",
+      "TableEmpty",
+      "TableHead",
+      "TableHeader",
+      "TableRow",
+      "Tabs",
+      "TabsContent",
+      "TabsList",
+      "TabsTrigger",
+      "Textarea",
+      "TextareaProps",
+      "Tooltip",
+      "TooltipContent",
+      "TooltipProvider",
+      "TooltipTrigger"
+    ]
+  }
+}

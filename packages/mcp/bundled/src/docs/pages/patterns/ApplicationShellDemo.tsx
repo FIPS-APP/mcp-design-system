@@ -1,0 +1,1016 @@
+import { useState, type ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import { CodeExportSection } from '../../components/CodeExport'
+import { useFipsTheme } from '../../../hooks/useFipsTheme'
+import {
+  AppWindow,
+  Bell,
+  BookOpen,
+  Briefcase,
+  ChevronDown,
+  FilePlus,
+  FileText,
+  FolderOpen,
+  GraduationCap,
+  Home,
+  LayoutDashboard,
+  Menu,
+  PanelLeft,
+  Settings,
+  Shield,
+  Sparkles,
+  SunMoon,
+  Timer,
+  Wrench,
+  ShieldCheck,
+  AlertTriangle,
+  ArrowUpFromLine,
+} from 'lucide-react'
+import { RuleCards } from '../../components/RuleCards'
+import { Badge } from '../../../components/ui/badge'
+import { DocHeaderSectionNavDemo } from '../../../components/layout/DocHeaderSectionNav'
+import { Button } from '../../../components/ui/button'
+import { Card, CardContent } from '../../../components/ui/card'
+import { cn } from '../../../lib/cn'
+
+type ViewportMode = 'desktop' | 'tablet' | 'mobile'
+
+type ShellItem = {
+  icon: LucideIcon
+  label: string
+  active?: boolean
+}
+
+type ShellGroup = {
+  id: string
+  label: string
+  icon: LucideIcon
+  items: ShellItem[]
+}
+
+type MetricCard = {
+  label: string
+  value: string
+  icon: LucideIcon
+  border: string
+  iconBg: string
+  iconColor: string
+}
+
+const HOME_BACKGROUND = '/backgrounds/app-shell-home-trains.png'
+
+const primaryItems: ShellItem[] = [
+  { icon: Home, label: 'Home', active: true },
+  { icon: FilePlus, label: 'Menu 1' },
+  { icon: FileText, label: 'Menu 2' },
+  { icon: FolderOpen, label: 'Menu 3' },
+]
+
+const groupedItems: ShellGroup[] = [
+  {
+    id: 'categoria-a',
+    label: 'Categoria A',
+    icon: Shield,
+    items: [
+      { icon: LayoutDashboard, label: 'Submenu 1' },
+      { icon: AppWindow, label: 'Submenu 2' },
+      { icon: Wrench, label: 'Submenu 3' },
+    ],
+  },
+  {
+    id: 'categoria-b',
+    label: 'Categoria B',
+    icon: LayoutDashboard,
+    items: [
+      { icon: FileText, label: 'Submenu 4' },
+      { icon: FolderOpen, label: 'Submenu 5' },
+      { icon: Sparkles, label: 'Submenu 6' },
+    ],
+  },
+  {
+    id: 'categoria-c',
+    label: 'Categoria C',
+    icon: Briefcase,
+    items: [
+      { icon: AppWindow, label: 'Submenu 7' },
+      { icon: Settings, label: 'Submenu 8' },
+    ],
+  },
+]
+
+const shellSectionTabs: Array<{ id: string; label: string; active: boolean; icon: LucideIcon }> = [
+  { id: 'start', label: 'Início', active: false, icon: Home },
+  { id: 'patterns', label: 'Padrões', active: true, icon: LayoutDashboard },
+  { id: 'foundations', label: 'Fundamentos', active: false, icon: Settings },
+  { id: 'components', label: 'Componentes', active: false, icon: AppWindow },
+  { id: 'meta', label: 'Projeto', active: false, icon: BookOpen },
+]
+
+const heroCards: MetricCard[] = [
+  {
+    label: 'Indicador 1',
+    value: '08',
+    icon: LayoutDashboard,
+    border: 'border-l-[#2c74ff]',
+    iconBg: 'bg-[#eaf1ff]',
+    iconColor: 'text-[#2c74ff]',
+  },
+  {
+    label: 'Indicador 2',
+    value: '12',
+    icon: Sparkles,
+    border: 'border-l-[#00c64c]',
+    iconBg: 'bg-[#e8fbef]',
+    iconColor: 'text-[#00a843]',
+  },
+  {
+    label: 'Indicador 3',
+    value: '04',
+    icon: FileText,
+    border: 'border-l-[#a855f7]',
+    iconBg: 'bg-[#f4eafe]',
+    iconColor: 'text-[#9333ea]',
+  },
+  {
+    label: 'Indicador 4',
+    value: '19',
+    icon: Menu,
+    border: 'border-l-[var(--color-accent-strong)]',
+    iconBg: 'bg-[#fff2df]',
+    iconColor: 'text-[var(--color-accent-strong)]',
+  },
+]
+
+const contentHighlights = ['Bloco visual 1', 'Bloco visual 2', 'Bloco visual 3']
+
+const secondaryNotes = [
+  'Hierarquia forte entre menu, hero e conteúdo.',
+  'Texto claro sobre o fundo azul com imagem visível.',
+  'Mockups específicos para desktop, tablet e celular.',
+]
+
+function MockupFrame({
+  viewport,
+  label,
+  hint,
+  className,
+  children,
+}: {
+  viewport: ViewportMode
+  label: string
+  hint: string
+  className?: string
+  children: ReactNode
+}) {
+  const { dark } = useFipsTheme()
+  const shellClasses =
+    viewport === 'desktop'
+      ? 'rounded-[38px] border border-[#16345f] bg-[#081426] p-3'
+      : viewport === 'tablet'
+        ? 'mx-auto w-full max-w-[860px] rounded-[44px] border border-[#16345f] bg-[#081426] p-3.5'
+        : 'mx-auto w-full max-w-[360px] rounded-[42px] border border-[#16345f] bg-[#081426] p-2.5'
+
+  const screenClasses =
+    viewport === 'desktop'
+      ? 'rounded-[28px]'
+      : viewport === 'tablet'
+        ? 'rounded-[34px]'
+        : 'rounded-[30px]'
+
+  const topLabel = viewport === 'desktop' ? label : `${label} Mockup`
+
+  return (
+    <div className={cn('space-y-3', className)}>
+      <div className={cn('relative overflow-hidden shadow-[0_30px_80px_rgba(3,15,40,0.35)]', shellClasses)}>
+        {viewport === 'desktop' ? (
+          <div className="mb-3 flex items-center justify-between px-2">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-white/[0.18]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/[0.1]" />
+            </div>
+            <span className="text-[11px] font-semibold tracking-[0.2em] text-white/[0.45] uppercase">
+              {topLabel}
+            </span>
+          </div>
+        ) : null}
+
+        {viewport === 'tablet' ? (
+          <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center">
+            <span className="h-1.5 w-16 rounded-full bg-white/[0.15]" />
+          </div>
+        ) : null}
+
+        {viewport === 'mobile' ? (
+          <div className="pointer-events-none absolute inset-x-0 top-2.5 flex justify-center">
+            <span className="h-5 w-28 rounded-full bg-[#06101d]" />
+          </div>
+        ) : null}
+
+        <div className={cn('overflow-hidden', dark ? 'bg-[#1A1A1A]' : 'bg-[#eef4fb]', screenClasses, viewport !== 'desktop' && 'mt-4')}>
+          {children}
+        </div>
+      </div>
+
+      <div className="space-y-1 px-1">
+        <p className="text-sm font-semibold text-[var(--color-fg)]">{label}</p>
+        <p className="text-sm text-[var(--color-fg-muted)]">{hint}</p>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Neumorphic icon tile (mesmo padrão DocsNeuSidebar) ─── */
+const NEU_LIGHT = {
+  borderIdle: '#1a3d6e',
+  borderAccent: 'rgba(246,146,30,0.58)',
+  bgIdle: 'linear-gradient(160deg, #0e4d8a 0%, #0a3a6e 55%, #072d58 100%)',
+  bgAccent: 'linear-gradient(145deg, #FFD37B 0%, #f7ad45 34%, #F6921E 64%, #cf730d 100%)',
+  shadowIdle: '0 3px 10px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.08) inset, 0 -1px 0 rgba(0,0,0,0.45) inset',
+  shadowHover: '0 10px 20px -10px rgba(246,146,30,0.55), 0 2px 3px rgba(0,42,104,0.34), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -2px 4px rgba(140,72,0,0.28)',
+  shadowActive: '0 12px 24px -12px rgba(246,146,30,0.62), 0 2px 4px rgba(0,42,104,0.38), inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -3px 6px rgba(120,64,0,0.36)',
+  iconIdle: 'rgba(255,255,255,0.75)',
+  iconActive: '#002A68',
+  textMuted: 'rgba(255,255,255,0.75)',
+  textHover: 'rgba(255,255,255,0.92)',
+  textActive: '#fafafa',
+} as const
+
+const NEU_DARK = {
+  borderIdle: '#3f3f46',
+  borderAccent: 'rgba(246,146,30,0.58)',
+  bgIdle: 'linear-gradient(160deg, #303036 0%, #222226 55%, #1c1c20 100%)',
+  bgAccent: 'linear-gradient(145deg, #FFD37B 0%, #f7ad45 34%, #F6921E 64%, #cf730d 100%)',
+  shadowIdle: '0 3px 10px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.05) inset, 0 -1px 0 rgba(0,0,0,0.55) inset',
+  shadowHover: '0 10px 20px -10px rgba(246,146,30,0.50), 0 2px 3px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 4px rgba(140,72,0,0.28)',
+  shadowActive: '0 12px 24px -12px rgba(246,146,30,0.55), 0 2px 4px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.30), inset 0 -3px 6px rgba(120,64,0,0.36)',
+  iconIdle: 'rgba(255,255,255,0.65)',
+  iconActive: '#1A1A1A',
+  textMuted: 'rgba(255,255,255,0.65)',
+  textHover: 'rgba(255,255,255,0.88)',
+  textActive: '#fafafa',
+} as const
+
+function ShellNeuIcon({ children, isActive, hovered }: { children: ReactNode; isActive: boolean; hovered: boolean }) {
+  const { dark } = useFipsTheme()
+  const NEU = dark ? NEU_DARK : NEU_LIGHT
+  const lit = isActive || hovered
+  return (
+    <div
+      className="relative flex shrink-0 items-center justify-center overflow-hidden"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        border: `1px solid ${lit ? NEU.borderAccent : NEU.borderIdle}`,
+        background: lit ? NEU.bgAccent : NEU.bgIdle,
+        boxShadow: isActive ? NEU.shadowActive : hovered ? NEU.shadowHover : NEU.shadowIdle,
+        transform: hovered && !isActive ? 'translateY(-1px)' : 'none',
+        transition: 'all 0.25s ease',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute', top: 1, left: 2, right: 2, height: '44%', borderRadius: 8,
+          background: lit ? 'linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.02))' : 'none',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+          transform: lit ? 'translateX(0)' : 'translateX(-100%)',
+          animation: lit ? 'docsSidebarNeuShimmer 0.5s ease forwards' : 'none',
+          pointerEvents: 'none',
+        }}
+      />
+      <div className="relative z-[1] flex items-center justify-center">{children}</div>
+    </div>
+  )
+}
+
+function ShellNavItem({
+  item,
+  collapsed,
+  indented = false,
+}: {
+  item: ShellItem
+  collapsed: boolean
+  indented?: boolean
+}) {
+  const { dark } = useFipsTheme()
+  const NEU = dark ? NEU_DARK : NEU_LIGHT
+  const [hovered, setHovered] = useState(false)
+  const Icon = item.icon
+  const isActive = !!item.active
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'relative flex w-full items-center rounded-lg transition-all duration-200',
+        collapsed ? 'justify-center py-1.5' : 'py-1.5',
+        indented && !collapsed ? 'pl-7 pr-3' : !collapsed ? 'px-3' : '',
+      )}
+      style={{ gap: collapsed ? 0 : 12 }}
+      title={collapsed ? item.label : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <ShellNeuIcon isActive={isActive} hovered={hovered}>
+        <Icon
+          className="h-[17px] w-[17px]"
+          strokeWidth={1.9}
+          style={{ color: isActive || hovered ? NEU.iconActive : NEU.iconIdle, transition: 'color 0.2s ease' }}
+          aria-hidden
+        />
+      </ShellNeuIcon>
+      {!collapsed ? (
+        <span
+          className="truncate text-left"
+          style={{
+            fontSize: 13,
+            fontWeight: isActive ? 500 : 400,
+            letterSpacing: '0.01em',
+            color: isActive ? NEU.textActive : hovered ? NEU.textHover : NEU.textMuted,
+            transition: 'color 0.15s ease',
+          }}
+        >
+          {item.label}
+        </span>
+      ) : null}
+    </button>
+  )
+}
+
+function ShellMenuAutoButton({ collapsed }: { collapsed: boolean }) {
+  const { dark } = useFipsTheme()
+  const NEU = dark ? NEU_DARK : NEU_LIGHT
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      type="button"
+      className="flex w-full items-center rounded-lg"
+      style={{
+        width: collapsed ? 52 : '100%',
+        maxWidth: collapsed ? 52 : '100%',
+        margin: collapsed ? '1px auto' : '1px 8px',
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        gap: collapsed ? 0 : 12,
+        padding: collapsed ? '6px 0' : '6px 12px',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <ShellNeuIcon isActive={false} hovered={hovered}>
+        <Timer
+          className="h-[17px] w-[17px]"
+          strokeWidth={1.9}
+          style={{ color: hovered ? NEU.iconActive : NEU.iconIdle, transition: 'color 0.2s ease' }}
+          aria-hidden
+        />
+      </ShellNeuIcon>
+      {!collapsed ? (
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 400,
+            letterSpacing: '0.01em',
+            color: hovered ? NEU.textHover : NEU.textMuted,
+            transition: 'color 0.15s ease',
+            textAlign: 'left',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Menu automático
+        </span>
+      ) : null}
+    </button>
+  )
+}
+
+function ShellSidebar({
+  collapsed,
+  drawer = false,
+  expandedGroups,
+  onToggleGroup,
+}: {
+  collapsed: boolean
+  drawer?: boolean
+  expandedGroups: Set<string>
+  onToggleGroup: (groupId: string) => void
+  onToggleSidebar?: () => void
+}) {
+  const { dark } = useFipsTheme()
+  return (
+    <aside
+      className={cn(
+        'flex h-full flex-col text-white',
+        dark ? 'bg-[#1A1A1A] shadow-[4px_0_24px_rgba(0,0,0,0.4)]' : 'bg-[#002a68] shadow-[4px_0_24px_rgba(0,26,64,0.28)]',
+        drawer ? 'w-[252px]' : collapsed ? 'w-[76px]' : 'w-64',
+      )}
+    >
+      <div
+        className="flex items-center justify-center overflow-hidden"
+        style={{
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          height: collapsed ? 56 : 59,
+          paddingLeft: collapsed ? 12 : 16,
+          paddingRight: collapsed ? 12 : 16,
+        }}
+      >
+        <div
+          className="flex items-center"
+          style={{
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            gap: collapsed ? 0 : 14,
+            minWidth: 0,
+            width: collapsed ? 'auto' : '100%',
+          }}
+        >
+          <img
+            src={collapsed ? '/appfips-mark-collapsed.png' : '/appfips-logo.png'}
+            alt="App FIPS"
+            style={
+              collapsed
+                ? { width: 36, height: 36, objectFit: 'contain', flexShrink: 0, display: 'block' }
+                : { height: 52, width: 'auto', maxWidth: 148, minWidth: 72, objectFit: 'contain', objectPosition: 'left center', flexShrink: 0, display: 'block' }
+            }
+          />
+          {!collapsed ? (
+            <span
+              style={{
+                fontFamily: "'Saira Expanded', sans-serif",
+                fontWeight: 700,
+                fontSize: 16,
+                lineHeight: 1.2,
+                color: '#fafafa',
+                letterSpacing: '0.03em',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              Design System
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <nav className="sidebar-scroll flex-1 overflow-y-auto px-2 py-3">
+        <div className="space-y-1">
+          {primaryItems.map((item) => (
+            <ShellNavItem key={item.label} item={item} collapsed={collapsed} />
+          ))}
+        </div>
+
+        {groupedItems.map((group) => {
+          const GroupIcon = group.icon
+          const isExpanded = expandedGroups.has(group.id)
+
+          if (collapsed) {
+            return (
+              <div key={group.id}>
+                <div className="mx-3 my-2 border-t border-white/[0.06]" />
+                <div className="space-y-1">
+                  {group.items.map((item) => (
+                    <ShellNavItem key={item.label} item={item} collapsed />
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          return (
+            <div key={group.id} className="mt-2">
+              <div className="mx-3 mb-1 border-t border-white/[0.06]" />
+              <button
+                type="button"
+                onClick={() => onToggleGroup(group.id)}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-white/[0.4] transition-all duration-200 hover:bg-white/[0.05] hover:text-white/[0.6]"
+              >
+                <span className="flex shrink-0 opacity-70">
+                  <GroupIcon className="h-4 w-4" aria-hidden />
+                </span>
+                <span className="flex-1 text-left text-[11px] font-bold uppercase tracking-widest">
+                  {group.label}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    'h-3.5 w-3.5 opacity-50 transition-transform duration-200',
+                    isExpanded ? '' : '-rotate-90',
+                  )}
+                  aria-hidden
+                />
+              </button>
+              <div
+                className={cn(
+                  'overflow-hidden transition-all duration-200',
+                  isExpanded ? 'max-h-[420px] opacity-100' : 'max-h-0 opacity-0',
+                )}
+              >
+                <div className="mt-0.5 space-y-1">
+                  {group.items.map((item) => (
+                    <ShellNavItem key={item.label} item={item} collapsed={false} indented />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </nav>
+
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '8px 8px 12px' }}>
+        <ShellMenuAutoButton collapsed={collapsed} />
+
+        <div className="border-t border-white/[0.06] px-2 pt-2 mt-2">
+          <div className={cn('flex items-center gap-2 py-2 text-white/[0.5]', collapsed ? 'justify-center' : 'justify-start', !collapsed && 'px-1')}>
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            {!collapsed ? <span className="text-xs">UI v1.2</span> : null}
+          </div>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+function HeroMetricCard({ metric }: { metric: MetricCard }) {
+  const { dark } = useFipsTheme()
+  const Icon = metric.icon
+
+  return (
+    <Card className={cn('border-l-4 backdrop-blur-sm', dark ? 'bg-[#222222] shadow-[0_16px_40px_rgba(0,0,0,0.3)]' : 'bg-white/[0.96] shadow-[0_16px_40px_rgba(6,37,74,0.14)]', metric.border)}>
+      <CardContent className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-[var(--color-fg-muted)]">{metric.label}</p>
+          <p className="mt-1 text-3xl font-semibold text-[var(--color-primary)]">{metric.value}</p>
+        </div>
+        <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl', dark ? 'bg-white/[0.06]' : metric.iconBg, metric.iconColor)}>
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ShellCanvas({
+  viewport,
+  desktopCollapsed,
+  mobileDrawerOpen,
+  expandedGroups,
+  onToggleGroup,
+  onToggleDesktopSidebar,
+  onToggleMobileDrawer,
+}: {
+  viewport: ViewportMode
+  desktopCollapsed: boolean
+  mobileDrawerOpen: boolean
+  expandedGroups: Set<string>
+  onToggleGroup: (groupId: string) => void
+  onToggleDesktopSidebar: () => void
+  onToggleMobileDrawer: () => void
+}) {
+  const { dark } = useFipsTheme()
+  const isDesktop = viewport === 'desktop'
+  const isTablet = viewport === 'tablet'
+  const isMobile = viewport === 'mobile'
+  const showPersistentSidebar = !isMobile
+  const sidebarCollapsed = isTablet || desktopCollapsed
+
+  return (
+    <div className={cn('relative flex h-full overflow-hidden', dark ? 'bg-[#1A1A1A]' : 'bg-[#eef4fb]')}>
+      {showPersistentSidebar ? (
+        <ShellSidebar
+          collapsed={sidebarCollapsed}
+          expandedGroups={expandedGroups}
+          onToggleGroup={onToggleGroup}
+          onToggleSidebar={isDesktop ? onToggleDesktopSidebar : undefined}
+        />
+      ) : null}
+
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        {/* Header — bloco separado estilo Tecnopano */}
+        <header className={cn('z-20 flex shrink-0 items-center gap-3 border-b px-4 py-2.5', dark ? 'border-[#2E2E2E] bg-[#252525]' : 'border-[#e5e5e5] bg-[#f5f5f5]')}>
+          {isMobile ? (
+            <button
+              type="button"
+              onClick={onToggleMobileDrawer}
+              className={cn('flex h-9 w-9 items-center justify-center rounded-[10px] border', dark ? 'border-[#3a3a3a] bg-[#222222] text-[#E2E2E8]' : 'border-black/[0.10] bg-white/90 text-neutral-800')}
+              aria-label="Abrir menu"
+            >
+              <Menu className="h-[17px] w-[17px]" aria-hidden />
+            </button>
+          ) : null}
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {!isMobile ? (
+              <button type="button" onClick={isDesktop ? onToggleDesktopSidebar : undefined} className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA] hover:bg-[#333]' : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50')} aria-label="Recolher menu">
+                <PanelLeft className={cn('h-[17px] w-[17px] transition-transform duration-200', isDesktop && desktopCollapsed && 'rotate-180')} aria-hidden strokeWidth={1.9} />
+              </button>
+            ) : null}
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className={dark ? 'text-[#A1A1AA]' : 'text-neutral-400'}>Padrões</span>
+              <span className={dark ? 'text-[#3a3a3a]' : 'text-neutral-300'}>/</span>
+              <span className={cn('font-semibold', dark ? 'text-[#E2E2E8]' : 'text-neutral-800')}>Home</span>
+            </div>
+          </div>
+          {!isMobile ? (
+            <div className={cn('hidden h-8 w-full max-w-[160px] items-center gap-2 rounded-lg border px-3 text-sm md:flex', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA]' : 'border-neutral-200 bg-white text-neutral-400')}>
+              <span className="text-xs">Q</span> Buscar...
+            </div>
+          ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {[Bell, ...(isMobile ? [] : [GraduationCap, SunMoon])].map((Icon, i) => (
+              <button key={i} type="button" className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA] hover:bg-[#333]' : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50')}>
+                <Icon className="h-[17px] w-[17px]" aria-hidden strokeWidth={1.9} />
+              </button>
+            ))}
+            <div className={cn('mx-0.5 h-6 w-px shrink-0', dark ? 'bg-[#3a3a3a]' : 'bg-neutral-300', isMobile && 'hidden')} />
+            <div className={cn('flex h-8 items-center gap-2 rounded-lg border px-2 text-xs font-semibold', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#E2E2E8]' : 'border-neutral-200 bg-white text-neutral-700')}>
+              <span className={cn('flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white', dark ? 'bg-[#F6921E]' : 'bg-[#F6921E]')}>AF</span>
+              {!isMobile && <span>Usuário</span>}
+              {!isMobile && <ChevronDown className="h-3 w-3 opacity-40" />}
+            </div>
+          </div>
+        </header>
+
+        {!isMobile ? (
+          <div className="z-20 shrink-0">
+            <DocHeaderSectionNavDemo tabs={shellSectionTabs} dark={dark} />
+          </div>
+        ) : null}
+
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0">
+            <img
+              src={HOME_BACKGROUND}
+              alt=""
+              className="h-full w-full object-cover object-center"
+              draggable={false}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(118deg,rgba(0,19,56,0.92)_0%,rgba(0,63,138,0.82)_44%,rgba(0,144,208,0.58)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(0,42,104,0.52),transparent_30%)]" />
+          </div>
+
+          <section
+            className={cn(
+              'relative z-10',
+              isDesktop ? 'px-8 pb-16 pt-16' : isTablet ? 'px-6 pb-14 pt-14' : 'px-4 pb-10 pt-10',
+            )}
+          >
+            <div className={cn('mx-auto max-w-4xl', isMobile ? 'text-left' : 'text-center')}>
+              <Badge className="border-0 bg-[rgba(246,146,30,0.95)] px-4 py-1.5 text-white shadow-[0_12px_28px_rgba(246,146,30,0.28)]">
+                Padrão Home
+              </Badge>
+
+              <h2
+                className={cn(
+                  'mt-6 font-heading font-semibold text-white',
+                  isDesktop ? 'text-4xl' : isTablet ? 'text-3xl' : 'text-2xl leading-snug',
+                )}
+              >
+                Home do <span className="text-[var(--color-accent)]">Aplicativo FIPS</span>
+              </h2>
+
+              <p
+                className={cn(
+                  'mt-4 max-w-2xl text-white/[0.8]',
+                  isMobile ? 'text-sm leading-6' : 'mx-auto text-base leading-7',
+                )}
+              >
+                Uma estrutura base para menus, ações e áreas de conteúdo com arte institucional,
+                degradê azul e leitura clara mesmo com imagem forte no fundo.
+              </p>
+
+              <div className={cn('mt-7 flex gap-3', isMobile ? 'flex-col' : 'justify-center')}>
+                <Button variant="accent" size="lg">
+                  Ação Primária
+                </Button>
+                <Button variant="inverseOutline" size="lg">
+                  Ação Secundária
+                </Button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className={cn('relative z-20', isDesktop ? '-mt-7 px-6 pb-4' : isTablet ? '-mt-6 px-5 pb-4' : '-mt-3 px-4 pb-4')}>
+          <div className={cn('grid gap-3', isDesktop ? 'grid-cols-4' : isTablet ? 'grid-cols-2' : 'grid-cols-1')}>
+            {heroCards.map((metric) => (
+              <HeroMetricCard key={metric.label} metric={metric} />
+            ))}
+          </div>
+        </div>
+
+        <div className={cn('no-scrollbar flex-1 overflow-auto', isDesktop ? 'px-6 pb-6 pt-2' : isTablet ? 'px-5 pb-5 pt-2' : 'px-4 pb-5 pt-2')}>
+          <div className={cn('grid gap-4', isDesktop ? 'lg:grid-cols-[minmax(0,1.45fr)_0.92fr]' : 'grid-cols-1')}>
+            <Card className="border-[var(--color-border)] shadow-[0_24px_60px_rgba(6,37,74,0.08)]">
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--color-fg)]">Área principal</p>
+                  <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+                    Depois do hero, o conteúdo volta para superfícies claras e respira melhor em qualquer largura.
+                  </p>
+                </div>
+
+                <div className={cn('grid gap-3', isMobile ? 'grid-cols-1' : 'sm:grid-cols-3')}>
+                  {contentHighlights.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 text-sm font-medium text-[var(--color-fg)]"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <div className={cn('grid gap-3', isMobile ? 'grid-cols-1' : 'sm:grid-cols-2')}>
+                  <div className="rounded-2xl bg-[linear-gradient(135deg,rgba(0,75,155,0.92),rgba(0,144,208,0.82))] p-5 text-white shadow-[0_18px_36px_rgba(0,75,155,0.22)]">
+                    <p className="text-xs font-semibold tracking-[0.14em] text-white/[0.66] uppercase">
+                      Destaque
+                    </p>
+                    <p className="mt-3 text-lg font-semibold">Bloco principal com ênfase visual</p>
+                    <p className="mt-2 text-sm leading-6 text-white/[0.78]">
+                      Ideal para introdução, CTA ou resumo do estado da tela.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+                    <p className="text-xs font-semibold tracking-[0.14em] text-[var(--color-fg-muted)] uppercase">
+                      Complemento
+                    </p>
+                    <div className="mt-3 space-y-2.5">
+                      {['Linha visual 1', 'Linha visual 2', 'Linha visual 3'].map((item) => (
+                        <div key={item} className="rounded-2xl bg-[var(--color-surface-soft)] px-4 py-3 text-sm text-[var(--color-fg-muted)]">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-[var(--color-border)] shadow-[0_24px_60px_rgba(6,37,74,0.08)]">
+              <CardContent className="space-y-3">
+                <p className="text-sm font-semibold text-[var(--color-fg)]">Notas visuais</p>
+                {secondaryNotes.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3 text-sm leading-6 text-[var(--color-fg-muted)]"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {isMobile && mobileDrawerOpen ? (
+        <>
+          <button
+            type="button"
+            className="absolute inset-0 z-30 bg-[#041327]/48 backdrop-blur-[1px]"
+            aria-label="Fechar menu"
+            onClick={onToggleMobileDrawer}
+          />
+          <div className="absolute inset-y-0 left-0 z-40">
+            <ShellSidebar
+              collapsed={false}
+              drawer
+              expandedGroups={expandedGroups}
+              onToggleGroup={onToggleGroup}
+            />
+          </div>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+export default function ApplicationShellDemo() {
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set(groupedItems.map((group) => group.id)))
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((previous) => {
+      const next = new Set(previous)
+      if (next.has(groupId)) next.delete(groupId)
+      else next.add(groupId)
+      return next
+    })
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--color-surface-muted)', fontFamily: "'Open Sans', sans-serif", color: 'var(--color-fg)' }}>
+      {/* HEADER HERO */}
+      <header style={{ background: 'linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 100%)', padding: '48px 40px 44px', position: 'relative', overflow: 'hidden' }}>
+        <svg viewBox="0 0 320 200" fill="none" style={{ opacity: 0.12, position: 'absolute', top: -10, right: -20, width: 400, height: 250 }}>
+          <path d="M0 60H100C120 60 120 60 140 40L200 40H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 60H100C120 60 120 60 140 80L200 80H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 100L160 100H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 140L160 140H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+        </svg>
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 20, padding: '5px 14px', fontSize: 11, fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#FDC24E', fontFamily: "'Saira Expanded', sans-serif", marginBottom: 16 }}>
+            <LayoutDashboard size={14} color="#FDC24E" /> Design System FIPS
+          </div>
+          <h1 style={{ fontSize: 44, fontWeight: 700, color: '#fff', margin: '0 0 10px', fontFamily: "'Saira Expanded', sans-serif" }}>Application Shell</h1>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.69)', lineHeight: 1.6, maxWidth: 700, margin: 0, fontFamily: "'Open Sans', sans-serif" }}>
+            Shell base para produtos FIPS com foco em impacto visual: fundo institucional contínuo, sidebar aprovada e família completa de mockups responsivos.
+          </p>
+        </div>
+      </header>
+
+      <div style={{ padding: '36px 40px 60px', maxWidth: 1100, margin: '0 auto' }}>
+
+      <RuleCards cards={[
+        { icon: <ShieldCheck size={20} color="var(--color-gov-azul-profundo)" />, color: 'var(--color-gov-azul-profundo)', bg: 'color-mix(in srgb, var(--color-gov-azul-profundo) 3%, transparent)', tag: 'REGRA 1', title: 'Estrutura fixa do shell', desc: 'Todo produto FIPS segue a mesma hierarquia visual: sidebar de navegação à esquerda, header com toolbar no topo, hero institucional com foto e degradê, e área de conteúdo abaixo. Essa ordem nunca muda.' },
+        { icon: <AlertTriangle size={20} color="#F6921E" />, color: '#F6921E', bg: '#F6921E08', tag: 'REGRA 2', title: 'Layout base de todo produto', desc: 'O Application Shell é o ponto de partida obrigatório para qualquer tela de produto FIPS. Ele garante consistência entre módulos diferentes — navegação, identidade visual e hierarquia de informação já vêm resolvidas.' },
+        { icon: <ArrowUpFromLine size={20} color="var(--color-gov-azul-escuro)" />, color: 'var(--color-gov-azul-escuro)', bg: 'color-mix(in srgb, var(--color-gov-azul-escuro) 3%, transparent)', tag: 'REGRA 3', title: 'Responsividade em três faixas', desc: 'No desktop a sidebar fica sempre visível e pode ser recolhida. No tablet ela aparece como rail compacto (só ícones). No celular a sidebar desaparece e vira um drawer que abre por cima do conteúdo.' },
+      ]} />
+
+      {/* Banner de Conteúdo */}
+      <div style={{ background: 'linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 60%, #001A4A 100%)', borderRadius: '12px 12px 12px 24px', padding: '22px 26px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,42,104,.12)', marginTop: 32, marginBottom: 32 }}>
+        <svg viewBox="0 0 320 200" fill="none" style={{ opacity: 0.06, position: 'absolute', top: -10, right: -20, width: 360, height: 200 }}>
+          <path d="M0 60H100C120 60 120 60 140 40L200 40H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 60H100C120 60 120 60 140 80L200 80H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 100L160 100H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 140L160 140H320" stroke="#fff" strokeWidth="6" strokeLinecap="round" />
+        </svg>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 11, background: 'rgba(253,194,78,0.09)', border: '1px solid rgba(253,194,78,0.19)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <PanelLeft size={20} color="#FDC24E" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2 style={{ fontSize: 21, fontWeight: 700, color: '#fff', fontFamily: "'Saira Expanded', sans-serif", margin: 0, lineHeight: 1.15, letterSpacing: '-0.2px' }}>Preview interativo</h2>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.67)', fontFamily: "'Open Sans', sans-serif", margin: '4px 0 0', lineHeight: 1.4 }}>Família responsiva com mockups para desktop, tablet e celular</p>
+          </div>
+        </div>
+      </div>
+
+        <div className="space-y-8">
+          <MockupFrame
+            viewport="desktop"
+            label="Desktop"
+            hint="Versão principal com sidebar persistente, hero contínuo e quatro indicadores logo abaixo da dobra."
+          >
+            <div className="h-[860px]">
+              <ShellCanvas
+                viewport="desktop"
+                desktopCollapsed={desktopCollapsed}
+                mobileDrawerOpen={mobileDrawerOpen}
+                expandedGroups={expandedGroups}
+                onToggleGroup={toggleGroup}
+                onToggleDesktopSidebar={() => setDesktopCollapsed((value) => !value)}
+                onToggleMobileDrawer={() => setMobileDrawerOpen((value) => !value)}
+              />
+            </div>
+          </MockupFrame>
+
+          <MockupFrame
+            viewport="tablet"
+            label="Tablet"
+            hint="Mockup mais largo, com proporção de tablet real, rail compacta e conteúdo distribuído sem parecer um telefone."
+          >
+            <div className="h-[620px]">
+              <ShellCanvas
+                viewport="tablet"
+                desktopCollapsed={desktopCollapsed}
+                mobileDrawerOpen={mobileDrawerOpen}
+                expandedGroups={expandedGroups}
+                onToggleGroup={toggleGroup}
+                onToggleDesktopSidebar={() => setDesktopCollapsed((value) => !value)}
+                onToggleMobileDrawer={() => setMobileDrawerOpen((value) => !value)}
+              />
+            </div>
+          </MockupFrame>
+
+          <MockupFrame
+            viewport="mobile"
+            label="Celular"
+            hint="Layout isolado para celular, com espaçamento mais seguro entre hero, indicadores e conteúdo."
+          >
+            <div className="h-[760px]">
+              <ShellCanvas
+                viewport="mobile"
+                desktopCollapsed={desktopCollapsed}
+                mobileDrawerOpen={mobileDrawerOpen}
+                expandedGroups={expandedGroups}
+                onToggleGroup={toggleGroup}
+                onToggleDesktopSidebar={() => setDesktopCollapsed((value) => !value)}
+                onToggleMobileDrawer={() => setMobileDrawerOpen((value) => !value)}
+              />
+            </div>
+          </MockupFrame>
+        </div>
+
+        <CodeExportSection items={[
+          {
+            label: 'Application Shell Layout',
+            description: 'Estrutura base sidebar + header + hero + content area para produtos FIPS.',
+            code: `/* ═══════════════════════════════════════════
+   Application Shell — Layout base FIPS
+   Sidebar persistente + Header + Hero + Content
+   ═══════════════════════════════════════════ */
+
+/* CSS Variables necessárias:
+   --color-gov-gradient-from: #002A68
+   --color-gov-gradient-to: #004B9B
+   --color-surface-muted: #F3F6FB (light) / #121212 (dark)
+   --color-fg: #333B41 (light) / #E2E2E8 (dark)
+   --color-accent: #F6921E
+*/
+
+import { useState } from 'react'
+
+type ViewportMode = 'desktop' | 'tablet' | 'mobile'
+
+export function AppShellLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      {/* Sidebar — w-64 expanded, w-[76px] collapsed */}
+      <aside
+        style={{
+          width: sidebarCollapsed ? 76 : 256,
+          background: 'var(--color-gov-gradient-from)',
+          color: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.2s ease',
+        }}
+      >
+        {/* Logo area: 59px height */}
+        <div style={{ height: 59, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 16px', display: 'flex', alignItems: 'center' }}>
+          <img src="/appfips-logo.png" alt="FIPS" style={{ height: 52 }} />
+        </div>
+        {/* Nav items */}
+        <nav style={{ flex: 1, overflow: 'auto', padding: '12px 8px' }}>
+          {/* Neumorphic icon tiles — ver DocsNeuSidebar */}
+        </nav>
+      </aside>
+
+      {/* Main area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Header */}
+        <header style={{
+          height: 48, padding: '0 16px',
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-surface)',
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          {/* Toggle sidebar + Breadcrumb + Search + Actions */}
+        </header>
+
+        {/* Section Nav (tabs) */}
+        <div style={{ borderBottom: '1px solid var(--color-border)' }}>
+          {/* DocHeaderSectionNav */}
+        </div>
+
+        {/* Hero with background image */}
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+          <img src="/backgrounds/app-shell-home-trains.png" alt=""
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(118deg, rgba(0,19,56,0.92) 0%, rgba(0,63,138,0.82) 44%, rgba(0,144,208,0.58) 100%)',
+          }} />
+          <div style={{ position: 'relative', padding: '64px 32px', textAlign: 'center' }}>
+            <h2 style={{ fontSize: 36, fontWeight: 600, color: '#fff', fontFamily: "'Saira Expanded', sans-serif" }}>
+              Home do <span style={{ color: 'var(--color-accent)' }}>Aplicativo FIPS</span>
+            </h2>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Breakpoints:
+   Desktop: sidebar persistente (expandida ou colapsada)
+   Tablet: sidebar como rail compacto (só ícones)
+   Mobile: sidebar como drawer overlay */`,
+          },
+        ]} />
+
+        <div style={{ textAlign: 'center', padding: '20px 0 0', borderTop: '1px solid #E2E8F0', marginTop: 20 }}>
+          <span style={{ fontSize: 12, color: '#7B8C96', letterSpacing: '0.5px', fontFamily: "'Saira Expanded', sans-serif", fontWeight: 400 }}>DS-FIPS v0.4.0 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -134,20 +134,28 @@ const toolCases: ToolCase[] = [
     input: { kind: 'form', name: 'Cliente' },
     check: (o) => {
       const x = o as { files: { path: string; contents: string }[] }
-      const f = x.files[0]
-      return f && f.contents.includes('<Button variant="primary"') && f.contents.includes('FieldLabel')
-        ? null
-        : 'form scaffold missing expected primitives'
+      const page = x.files[0]
+      if (!page || !page.path.startsWith('src/pages/')) return 'form: first file is not the page'
+      if (!page.contents.includes("from '../ds/Card'")) return 'form: page does not import from ../ds/Card'
+      if (!page.contents.includes("from '../ds/Field'")) return 'form: page does not import from ../ds/Field'
+      const dsFiles = x.files.slice(1).map((f) => f.path)
+      const need = ['src/ds/Card.tsx', 'src/ds/Field.tsx', 'src/ds/Button.tsx']
+      for (const n of need) if (!dsFiles.includes(n)) return `form: missing bundled ${n}`
+      return null
     },
   },
   {
     tool: 'scaffold_screen',
     input: { kind: 'listing', name: 'Clientes' },
     check: (o) => {
-      const x = o as { files: { contents: string }[] }
-      return x.files[0].contents.includes('<Table>') && x.files[0].contents.includes('Badge')
-        ? null
-        : 'listing scaffold missing Table/Badge'
+      const x = o as { files: { path: string; contents: string }[] }
+      const page = x.files[0]
+      if (!page.contents.includes('<Table>') || !page.contents.includes('<Badge')) return 'listing: page missing Table/Badge'
+      const dsFiles = x.files.slice(1).map((f) => f.path)
+      for (const n of ['src/ds/Table.tsx', 'src/ds/Dialog.tsx', 'src/ds/Card.tsx']) {
+        if (!dsFiles.includes(n)) return `listing: missing bundled ${n}`
+      }
+      return null
     },
   },
 ]

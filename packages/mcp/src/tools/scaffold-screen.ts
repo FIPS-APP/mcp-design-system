@@ -558,7 +558,7 @@ export function Table({ className, children, ...rest }: HTMLAttributes<HTMLTable
 
 export function TableHeader({ className, children, ...rest }: HTMLAttributes<HTMLTableSectionElement>) {
   return (
-    <thead {...rest} className={['border-b border-[var(--color-border)] bg-[var(--color-surface-soft)]', className ?? ''].filter(Boolean).join(' ')}>
+    <thead {...rest} className={['border-b-2 border-[var(--color-border)] bg-[var(--color-surface-muted)]', className ?? ''].filter(Boolean).join(' ')}>
       {children}
     </thead>
   )
@@ -582,7 +582,7 @@ export function TableRow({ className, children, ...rest }: HTMLAttributes<HTMLTa
 
 export function TableHead({ className, children, ...rest }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <th {...rest} className={['h-11 px-4 text-left text-xs font-semibold uppercase tracking-wide text-[var(--color-fg-muted)]', className ?? ''].filter(Boolean).join(' ')}>
+    <th {...rest} className={['h-11 px-4 text-left text-xs font-semibold uppercase tracking-wide text-[var(--color-fg)]', className ?? ''].filter(Boolean).join(' ')}>
       {children}
     </th>
   )

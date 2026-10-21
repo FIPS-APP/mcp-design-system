@@ -766,6 +766,118 @@ export function DialogClose({ asChild, children, onClick, ...rest }: DialogClose
 }
 `
 
+// Banner de página do padrão do DS-FIPS (PageHeader, Design-system-FIPS#99).
+// Os valores ficam no próprio molde porque o globals.css empacotado não tem os
+// tokens --fips-banner-*: gradiente de #004B9B para #002A68, tile de 44px a 10%
+// e 19% do --color-accent, título h1 em --font-heading. Nenhum token novo.
+const TPL_PAGE_HEADER = `import { type HTMLAttributes, type ReactNode } from 'react'
+
+const HEADINGS = { 1: 'h1', 2: 'h2', 3: 'h3', 4: 'h4', 5: 'h5', 6: 'h6' } as const
+
+function cn(...classes: Array<string | false | undefined | null>) {
+  return classes.filter(Boolean).join(' ')
+}
+
+export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'children'> {
+  icon?: ReactNode
+  title: ReactNode
+  description?: ReactNode
+  eyebrow?: ReactNode
+  info?: ReactNode
+  actions?: ReactNode
+  headingLevel?: keyof typeof HEADINGS
+}
+
+// A largura que vale é a do cartão (container query de 560px), não a da janela.
+// Abaixo disso o resumo desce para a linha de baixo e as ações ocupam a última
+// linha, lado a lado. Em aparelho de toque os botões das ações têm 44px.
+// A raiz é o contêiner da medida: data-*, aria-* e className vão para ela, e
+// className serve só para layout (margem, largura máxima).
+export function PageHeader({
+  icon,
+  title,
+  description,
+  eyebrow,
+  info,
+  actions,
+  headingLevel = 1,
+  className,
+  ...rest
+}: PageHeaderProps) {
+  const Heading = HEADINGS[headingLevel]
+  const Description = typeof description === 'string' ? 'p' : 'div'
+  return (
+    <div {...rest} className={cn('@container w-full', className)}>
+      <div
+        className={cn(
+          'fips-banner-shell--content relative overflow-hidden border border-transparent p-3 text-white',
+          'rounded-[10px_10px_10px_18px] @min-[560px]:rounded-[12px_12px_12px_24px] @min-[560px]:px-[26px] @min-[560px]:py-[22px]',
+          'bg-[linear-gradient(135deg,#004B9B_0%,#002A68_60%,#001A4A_100%)] shadow-[0_4px_20px_rgba(0,42,104,0.12)]',
+          'dark:border-[rgba(147,189,228,0.08)] dark:bg-[linear-gradient(135deg,#1E2A3A_0%,#162030_50%,#1A2840_100%)]',
+          'dark:shadow-[0_4px_20px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]',
+        )}
+      >
+        <svg
+          viewBox="0 0 320 200"
+          fill="none"
+          aria-hidden="true"
+          className="fips-banner-junction pointer-events-none absolute -right-5 -top-2.5 h-[200px] w-[180px] opacity-[0.12] dark:opacity-[0.04] @min-[560px]:w-[360px]"
+        >
+          <path d="M0 60H100C120 60 120 60 140 40L200 40H320" stroke="white" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 60H100C120 60 120 60 140 80L200 80H320" stroke="white" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 100L160 100H320" stroke="white" strokeWidth="6" strokeLinecap="round" />
+          <path d="M0 120H60C80 120 80 120 100 140L160 140H320" stroke="white" strokeWidth="6" strokeLinecap="round" />
+        </svg>
+        <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3.5 gap-y-1.5 @min-[560px]:flex @min-[560px]:flex-wrap @min-[560px]:gap-x-4 @min-[560px]:gap-y-2">
+          {icon ? (
+            <div
+              className={cn(
+                'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[9px] border text-[var(--color-accent)]',
+                'border-[color-mix(in_srgb,var(--color-accent)_19%,transparent)] bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)]',
+                '[&>svg]:h-[17px] [&>svg]:w-[17px]',
+                '@min-[560px]:h-[44px] @min-[560px]:w-[44px] @min-[560px]:rounded-[11px] @min-[560px]:[&>svg]:h-5 @min-[560px]:[&>svg]:w-5',
+              )}
+            >
+              {icon}
+            </div>
+          ) : null}
+          <div className="contents @min-[560px]:block @min-[560px]:min-w-0 @min-[560px]:flex-[1_1_256px]">
+            <div className={cn('min-w-0', !icon && 'col-span-2')}>
+              {eyebrow ? (
+                <span className="mb-0.5 block font-heading text-[11px] font-semibold uppercase leading-[1.5] tracking-[0.14em] text-[var(--color-accent)]">
+                  {eyebrow}
+                </span>
+              ) : null}
+              <div className="flex items-center gap-1.5">
+                <Heading className="m-0 min-w-0 break-words font-heading text-[18px] font-bold leading-[1.15] tracking-[-0.2px] text-white @min-[560px]:text-[21px]">
+                  {title}
+                </Heading>
+                {info}
+              </div>
+            </div>
+            {description ? (
+              <Description className="col-span-2 m-0 max-w-[840px] text-[11.5px] leading-[1.3] text-[rgba(255,255,255,0.67)] @min-[560px]:mt-1 @min-[560px]:text-[12px] @min-[560px]:leading-[1.4]">
+                {description}
+              </Description>
+            ) : null}
+          </div>
+          {actions ? (
+            <div
+              className={cn(
+                'col-span-2 flex min-w-0 flex-wrap gap-2 [&>*]:flex-1 [@media(pointer:coarse)]:[&>*]:min-h-[44px]!',
+                '@min-[560px]:ml-auto @min-[560px]:shrink-0 @min-[560px]:[&>*]:flex-none',
+              )}
+            >
+              {actions}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+`
+
 const COMPONENT_TEMPLATES: Record<string, string> = {
   Card: TPL_CARD,
   Button: TPL_BUTTON,
@@ -778,6 +890,7 @@ const COMPONENT_TEMPLATES: Record<string, string> = {
   Tabs: TPL_TABS,
   Table: TPL_TABLE,
   Dialog: TPL_DIALOG,
+  PageHeader: TPL_PAGE_HEADER,
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -787,6 +900,11 @@ const COMPONENT_TEMPLATES: Record<string, string> = {
 interface RenderedPage {
   contents: string
   components: string[]
+}
+
+// Texto como valor de atributo JSX: aspas, & e quebra de linha pedem expressão.
+function jsxStr(s: string) {
+  return /["&\r\n]/.test(s) ? `{${JSON.stringify(s)}}` : `"${s}"`
 }
 
 function renderField(f: ScaffoldField): string {
@@ -816,13 +934,14 @@ ${opts}
 }
 
 function renderForm(name: string, fields: ScaffoldField[]): RenderedPage {
-  const components = ['Card', 'Field', 'Button']
+  const components = ['PageHeader', 'Card', 'Field', 'Button']
   for (const f of fields) {
     if (f.type === 'select' && !components.includes('Select')) components.push('Select')
     else if (f.type === 'textarea' && !components.includes('Textarea')) components.push('Textarea')
     else if (!['select', 'textarea'].includes(f.type) && !components.includes('Input')) components.push('Input')
   }
   const importLines: string[] = [
+    "import { PageHeader } from '../ds/PageHeader'",
     "import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ds/Card'",
     "import { Field, FieldLabel } from '../ds/Field'",
     "import { Button } from '../ds/Button'",
@@ -830,25 +949,39 @@ function renderForm(name: string, fields: ScaffoldField[]): RenderedPage {
   if (components.includes('Input')) importLines.push("import { Input } from '../ds/Input'")
   if (components.includes('Select')) importLines.push("import { Select } from '../ds/Select'")
   if (components.includes('Textarea')) importLines.push("import { Textarea } from '../ds/Textarea'")
-  const body = fields.map(renderField).join('\n\n')
+  const body = fields.map(renderField).join('\n\n').replace(/^(?=.)/gm, '    ')
   const contents = `${importLines.join('\n')}
+
+const bannerIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+    <path d="M10 9H8" />
+    <path d="M16 13H8" />
+    <path d="M16 17H8" />
+  </svg>
+)
 
 export function ${pascal(name)}Form() {
   return (
-    <Card className="mx-auto max-w-2xl">
-      <CardHeader>
-        <CardTitle>${name}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="grid gap-4">
+    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
+      <PageHeader icon={bannerIcon} title=${jsxStr(name)} description="Preencha os dados e salve o registro." />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dados do registro</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-4">
 ${body}
-        </form>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-3">
-        <Button variant="secondary" type="button">Cancelar</Button>
-        <Button variant="primary" type="submit">Salvar</Button>
-      </CardFooter>
-    </Card>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-3">
+          <Button variant="secondary" type="button">Cancelar</Button>
+          <Button variant="primary" type="submit">Salvar</Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
 `
@@ -860,6 +993,16 @@ function renderDashboard(name: string): RenderedPage {
 import { Badge } from '../ds/Badge'
 import { Progress } from '../ds/Progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ds/Tabs'
+import { PageHeader } from '../ds/PageHeader'
+
+const bannerIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect width="7" height="9" x="3" y="3" rx="1" />
+    <rect width="7" height="5" x="14" y="3" rx="1" />
+    <rect width="7" height="9" x="14" y="12" rx="1" />
+    <rect width="7" height="5" x="3" y="16" rx="1" />
+  </svg>
+)
 
 const kpis = [
   { label: 'Pedidos abertos', value: '128', delta: '+12%', tone: 'success' as const },
@@ -871,10 +1014,7 @@ const kpis = [
 export function ${pascal(name)}Dashboard() {
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
-      <header className="space-y-2">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-[var(--color-fg)]">${name}</h1>
-        <p className="text-[var(--color-fg-muted)]">Visão geral em tempo real.</p>
-      </header>
+      <PageHeader icon={bannerIcon} title=${jsxStr(name)} description="Visão geral em tempo real." />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {kpis.map((k) => (
@@ -918,7 +1058,7 @@ export function ${pascal(name)}Dashboard() {
   )
 }
 `
-  return { contents, components: ['Card', 'Badge', 'Progress', 'Tabs'] }
+  return { contents, components: ['PageHeader', 'Card', 'Badge', 'Progress', 'Tabs'] }
 }
 
 function renderListing(name: string): RenderedPage {
@@ -930,6 +1070,18 @@ import { Button } from '../ds/Button'
 import { Badge } from '../ds/Badge'
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '../ds/Table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from '../ds/Dialog'
+import { PageHeader } from '../ds/PageHeader'
+
+const bannerIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
+  </svg>
+)
 
 interface Item { id: string; nome: string; status: 'ativo' | 'pendente' | 'inativo'; cnpj: string }
 const data: Item[] = [
@@ -947,9 +1099,12 @@ export function ${pascal(name)}Listing() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-      <header>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-[var(--color-fg)]">${name}</h1>
-      </header>
+      <PageHeader
+        icon={bannerIcon}
+        title=${jsxStr(name)}
+        description="Consulte, filtre e cadastre os registros."
+        actions={<Button variant="accent" size="sm">Novo registro</Button>}
+      />
 
       <Card className="p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -960,7 +1115,6 @@ export function ${pascal(name)}Listing() {
             <option value="pendente">Pendente</option>
             <option value="inativo">Inativo</option>
           </Select>
-          <Button variant="primary">Adicionar</Button>
         </div>
       </Card>
 
@@ -1011,7 +1165,7 @@ export function ${pascal(name)}Listing() {
 `
   return {
     contents,
-    components: ['Card', 'Input', 'Select', 'Button', 'Badge', 'Table', 'Dialog'],
+    components: ['PageHeader', 'Card', 'Input', 'Select', 'Button', 'Badge', 'Table', 'Dialog'],
   }
 }
 
@@ -1149,6 +1303,7 @@ export const scaffoldScreenTool = {
         'Each generated component is self-contained: imports from "react" only. Style via CSS vars (`var(--color-*)`) which you must have in src/index.css from `dsfips://styles/globals.css`.',
         'Do NOT touch `dsfips://components/{name}/snippet` for these files — those are legacy showcases with a different API. Save the bundle below verbatim.',
         'Run validate_jsx on the page contents (the first file) — it MUST return ok:true. If a violation appears, the bug is in the scaffold, not in your code: report back.',
+        'Form, dashboard and listing pages open with the page banner (src/ds/PageHeader.tsx). Its title is the only <h1> of the screen: do not add another. className on it is for layout only.',
       ],
     }
   },

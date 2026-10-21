@@ -31,6 +31,21 @@ interface ToolCase {
   check: (out: unknown) => string | null
 }
 
+/** Pages open with the page banner: the h1 lives in PageHeader, never in the page. */
+function checkBanner(kind: string, files: { path: string; contents: string }[]): string | null {
+  const page = files[0]
+  if (!page.contents.includes("from '../ds/PageHeader'") || !page.contents.includes('<PageHeader')) {
+    return `${kind}: page does not use PageHeader`
+  }
+  if (/<h1[\s>]/.test(page.contents)) return `${kind}: page has its own <h1>`
+  const header = files.find((f) => f.path === 'src/ds/PageHeader.tsx')
+  if (!header) return `${kind}: missing bundled src/ds/PageHeader.tsx`
+  for (const marker of ['fips-banner-shell--content', '#004B9B_0%,#002A68_60%,#001A4A_100%', 'headingLevel = 1']) {
+    if (!header.contents.includes(marker)) return `${kind}: PageHeader without ${marker}`
+  }
+  return null
+}
+
 const toolCases: ToolCase[] = [
   {
     tool: 'get_version',
@@ -141,7 +156,25 @@ const toolCases: ToolCase[] = [
       const dsFiles = x.files.slice(1).map((f) => f.path)
       const need = ['src/ds/Card.tsx', 'src/ds/Field.tsx', 'src/ds/Button.tsx']
       for (const n of need) if (!dsFiles.includes(n)) return `form: missing bundled ${n}`
-      return null
+      return checkBanner('form', x.files)
+    },
+  },
+  {
+    tool: 'scaffold_screen',
+    input: { kind: 'dashboard', name: 'Operações' },
+    check: (o) => {
+      const x = o as { files: { path: string; contents: string }[] }
+      return checkBanner('dashboard', x.files)
+    },
+  },
+  {
+    tool: 'scaffold_screen',
+    input: { kind: 'dashboard', name: 'Pedidos "VIP" & Cia' },
+    check: (o) => {
+      const x = o as { files: { path: string; contents: string }[] }
+      return x.files[0].contents.includes('title={"Pedidos \\"VIP\\" & Cia"}')
+        ? null
+        : 'dashboard: name with quotes is not passed as an expression'
     },
   },
   {
@@ -155,7 +188,8 @@ const toolCases: ToolCase[] = [
       for (const n of ['src/ds/Table.tsx', 'src/ds/Dialog.tsx', 'src/ds/Card.tsx']) {
         if (!dsFiles.includes(n)) return `listing: missing bundled ${n}`
       }
-      return null
+      if (!page.contents.includes('actions={')) return 'listing: banner without the new-record action'
+      return checkBanner('listing', x.files)
     },
   },
 ]

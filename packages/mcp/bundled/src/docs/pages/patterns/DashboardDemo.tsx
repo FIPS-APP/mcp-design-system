@@ -1,8 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { CodeExportSection } from '../../components/CodeExport'
-import { LuLayoutGrid, LuCircleCheck, LuClock, LuTriangleAlert, LuFileText, LuList, LuChartColumnIncreasing, LuArrowUp, LuArrowDown, LuX, LuBuilding2, LuCalendar, LuUser, LuFlag, LuFileSpreadsheet, LuFileDown, LuChevronDown, LuCheck } from "react-icons/lu";
-import { PieChart, Pie, Cell } from "recharts";
+import { LuLayoutGrid, LuCircleCheck, LuClock, LuTriangleAlert, LuFileText, LuList, LuChartColumnIncreasing, LuArrowUp, LuArrowDown, LuX, LuBuilding2, LuCalendar, LuUser, LuFlag, LuFileSpreadsheet, LuFileDown, LuChevronDown } from "react-icons/lu";
+import * as echarts from "echarts/core";
+import { PieChart } from "echarts/charts";
+import { CanvasRenderer } from "echarts/renderers";
+
+echarts.use([PieChart, CanvasRenderer]);
 import { useFipsTheme } from '../../../hooks/useFipsTheme';
 
 const C={azulProfundo:"#004B9B",azulEscuro:"#002A68",azulClaro:"#658EC9",cinzaChumbo:"var(--color-fg-muted)",cinzaEscuro:"var(--color-fg)",cinzaClaro:"#C0CCD2",azulCeu:"#93BDE4",azulCeuClaro:"#D3E3F4",amareloOuro:"#FDC24E",amareloEscuro:"#F6921E",verdeFloresta:"#00C64C",verdeEscuro:"#00904C",danger:"#DC3545",neutro:"var(--color-surface-soft)",branco:"#FFFFFF",bg:"var(--color-surface-muted)",cardBg:"var(--color-surface)",cardBorder:"var(--color-border)",textMuted:"var(--color-fg-muted)",textLight:"var(--color-fg-muted)"};
@@ -11,7 +15,34 @@ const Fn={title:"'Saira Expanded',sans-serif",body:"'Open Sans',sans-serif",mono
 
 function JunctionLines({style}:{style?:React.CSSProperties}){return <svg viewBox="0 0 320 200" fill="none" style={{opacity:.12,...style}}><path d="M0 60H100C120 60 120 60 140 40L200 40H320" stroke={C.branco} strokeWidth="6" strokeLinecap="round"/><path d="M0 60H100C120 60 120 60 140 80L200 80H320" stroke={C.branco} strokeWidth="6" strokeLinecap="round"/><path d="M0 120H60C80 120 80 120 100 100L160 100H320" stroke={C.branco} strokeWidth="6" strokeLinecap="round"/><path d="M0 120H60C80 120 80 120 100 140L160 140H320" stroke={C.branco} strokeWidth="6" strokeLinecap="round"/></svg>}
 
-function Donut({pct,color,size=48,stroke=4}:{pct:number,color:string,size?:number,stroke?:number}){const data=[{value:pct},{value:100-pct}];return <PieChart width={size} height={size}><Pie data={data} cx={size/2-1} cy={size/2-1} innerRadius={(size-stroke*2)/2-stroke} outerRadius={(size-stroke)/2} startAngle={90} endAngle={-270} dataKey="value" stroke="none" isAnimationActive={false}><Cell fill={color}/><Cell fill={`${color}18`}/></Pie></PieChart>}
+function Donut({pct,color,size=48,stroke=4}:{pct:number,color:string,size?:number,stroke?:number}){
+  const ref=useRef<HTMLDivElement>(null);
+  const chartRef=useRef<echarts.ECharts|null>(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    const chart=echarts.init(ref.current,undefined,{width:size,height:size});
+    chartRef.current=chart;
+    return ()=>{chart.dispose();chartRef.current=null};
+  },[size]);
+  useEffect(()=>{
+    const inner=(size-stroke*2)/2-stroke,outer=(size-stroke)/2,c=size/2-1;
+    chartRef.current?.setOption({
+      series:[{
+        type:"pie",
+        radius:[inner,outer],
+        center:[c,c],
+        startAngle:90,
+        silent:true,
+        animation:false,
+        label:{show:false},
+        labelLine:{show:false},
+        itemStyle:{borderWidth:0},
+        data:[{value:pct,itemStyle:{color}},{value:100-pct,itemStyle:{color:`${color}18`}}],
+      }],
+    });
+  },[pct,color,size,stroke]);
+  return <div ref={ref} style={{width:size,height:size}}/>;
+}
 
 const BV_LIGHT: Record<string,{bg:string,color:string,border:string}>={Finalizada:{bg:"#ECFDF5",color:C.verdeEscuro,border:"#A7F3D0"},Aguardando:{bg:"#FFF7ED",color:"#C2410C",border:"#FDBA74"},Recusada:{bg:"#FEF2F2",color:"#B91C1C",border:"#FECACA"},"Em análise":{bg:C.azulCeuClaro,color:C.azulEscuro,border:C.azulCeu}};
 const BV_DARK: Record<string,{bg:string,color:string,border:string}>={Finalizada:{bg:"rgba(0,198,76,0.14)",color:"#8BE5AD",border:"rgba(0,198,76,0.28)"},Aguardando:{bg:"rgba(246,146,30,0.14)",color:"#FDC24E",border:"rgba(246,146,30,0.28)"},Recusada:{bg:"rgba(239,68,68,0.14)",color:"#FCA5A5",border:"rgba(239,68,68,0.28)"},"Em análise":{bg:"rgba(147,189,228,0.14)",color:"#93BDE4",border:"rgba(147,189,228,0.28)"}};
@@ -47,31 +78,49 @@ function seed(): Row[]{
 }
 
 /* ═══════════════════ DSSelect ═══════════════════ */
-function DSSelect({label,value,onChange,options,placeholder="Todos",icon}:{label?:string,value:string|null,onChange:(v:string|null)=>void,options:string[],placeholder?:string,icon?:React.ReactNode}){
+/* Chip de filtro — 32.5px, dropdown com radio (padrão da toolbar: DataListingDemo/ChipSelect real do Governança BI).
+   Substitui o antigo DSSelect (box rotulado, label acima) na barra de filtros. */
+function ChipSelect({label,value,onChange,options,placeholder="Todos",icon}:{label:string,value:string|null,onChange:(v:string|null)=>void,options:string[],placeholder?:string,icon?:React.ReactNode}){
   const {dark}=useFipsTheme();
   const [open,setOpen]=useState(false);
-  const [hi,setHi]=useState(-1);
   const ref=useRef<HTMLDivElement>(null);
-  useEffect(()=>{const h=(e:MouseEvent)=>{if(ref.current&&!ref.current.contains(e.target as Node))setOpen(false)};document.addEventListener("mousedown",h);return()=>document.removeEventListener("mousedown",h)},[]);
+  useEffect(()=>{
+    if(!open)return;
+    const h=(e:MouseEvent)=>{if(ref.current&&!ref.current.contains(e.target as Node))setOpen(false)};
+    document.addEventListener("mousedown",h);
+    return()=>document.removeEventListener("mousedown",h);
+  },[open]);
   const display=value||placeholder;
-  const bc=open?(dark?"#93BDE4":C.azulProfundo):(dark?"#4A5568":"#CBD5E1");
+  const active=Boolean(value);
+  const accent=dark?"#93BDE4":C.azulProfundo;
   return(
-    <div ref={ref} style={{display:"flex",flexDirection:"column",minWidth:0,position:"relative",zIndex:open?30:1}}>
-      {label&&<label style={{fontSize:11,fontWeight:600,color:C.cinzaEscuro,fontFamily:Fn.body,marginBottom:1,marginLeft:7}}>{label}</label>}
-      <div onClick={()=>setOpen(!open)} style={{display:"flex",alignItems:"center",gap:8,height:30,padding:"0 12px",background:dark?"var(--color-surface)":C.branco,border:`1.5px solid ${bc}`,borderRadius:open?"8px 8px 0 0":8,transition:"all .18s",boxShadow:open?"0 0 0 3px rgba(147,189,228,0.35)":"none",cursor:"pointer",fontFamily:Fn.body,fontSize:12,userSelect:"none"}}>
-        {icon&&<span style={{display:"flex",flexShrink:0,opacity:.55}}>{icon}</span>}
-        <span style={{flex:1,color:value?C.cinzaEscuro:C.textLight,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{display}</span>
-        <LuChevronDown size={14} color={C.cinzaChumbo} style={{flexShrink:0,opacity:.45,transition:"transform .2s",transform:open?"rotate(180deg)":"rotate(0)"}}/>
-      </div>
-      {open&&<div style={{position:"absolute",top:"100%",left:0,right:0,zIndex:20,background:dark?"var(--color-surface)":C.branco,border:`1.5px solid ${dark?"#93BDE4":C.azulProfundo}`,borderTop:"none",borderRadius:"0 0 8px 8px",boxShadow:dark?"0 6px 20px rgba(0,0,0,.3)":"0 6px 20px rgba(0,75,155,.12)",maxHeight:200,overflowY:"auto"}}>
-        <div onClick={()=>{onChange(null);setOpen(false)}} onMouseEnter={()=>setHi(-1)} style={{padding:"6px 14px",paddingLeft:icon?20:14,fontSize:12,fontFamily:Fn.body,color:!value?(dark?"#93BDE4":C.azulProfundo):C.cinzaEscuro,fontWeight:!value?600:400,background:!value?(dark?"rgba(147,189,228,0.14)":C.azulCeuClaro):"transparent",cursor:"pointer"}}>{placeholder}</div>
-        {options.map((o,i)=>{const sel=o===value;return <div key={o} onClick={()=>{onChange(o);setOpen(false)}} onMouseEnter={()=>setHi(i)} onMouseLeave={()=>setHi(-1)} style={{padding:"6px 14px",paddingLeft:icon?20:14,fontSize:12,fontFamily:Fn.body,color:sel?(dark?"#93BDE4":C.azulProfundo):C.cinzaEscuro,fontWeight:sel?600:400,background:sel?(dark?"rgba(147,189,228,0.14)":C.azulCeuClaro):i===hi?C.bg:"transparent",cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
-          {sel&&<LuCheck size={12} color={dark?"#93BDE4":C.azulProfundo} style={{marginLeft:-14,flexShrink:0}}/>}
-          {o}
-        </div>})}
-      </div>}
+    <div ref={ref} style={{position:"relative"}}>
+      <button type="button" onClick={()=>setOpen(v=>!v)} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",fontSize:11,fontWeight:600,color:active?accent:C.cinzaEscuro,background:active?(dark?"rgba(147,189,228,0.10)":C.azulCeuClaro):C.cardBg,border:`1px solid ${open||active?accent:C.cardBorder}`,borderRadius:8,cursor:"pointer",fontFamily:Fn.body,boxShadow:open?`0 0 0 2px ${dark?"rgba(147,189,228,.25)":"rgba(0,75,155,.12)"}`:"none",transition:"all .15s",whiteSpace:"nowrap"}}>
+        {icon&&<span style={{display:"flex",flexShrink:0,opacity:.7}}>{icon}</span>}
+        <span style={{color:C.cinzaChumbo,flexShrink:0}}>{label}:</span>
+        <span style={{fontWeight:700}}>{display}</span>
+        <LuChevronDown size={11} color={C.cinzaChumbo} style={{flexShrink:0,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}/>
+      </button>
+      {open&&(
+        <div role="listbox" style={{position:"absolute",left:0,top:"calc(100% + 6px)",zIndex:50,minWidth:180,maxHeight:280,overflowY:"auto",background:dark?"var(--color-surface)":C.branco,border:`1px solid ${C.cardBorder}`,borderRadius:"8px 8px 8px 14px",boxShadow:dark?"0 12px 36px rgba(0,0,0,.35)":"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",padding:"6px 0"}}>
+          <div onClick={()=>{onChange(null);setOpen(false)}} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",fontSize:11,fontWeight:!value?700:500,color:!value?accent:C.cinzaEscuro,cursor:"pointer",background:!value?(dark?"rgba(147,189,228,.14)":`${C.azulProfundo}10`):"transparent"}}>
+            <ChipRadioDot active={!value} color={accent}/>{placeholder}
+          </div>
+          {options.map(o=>{
+            const sel=o===value;
+            return(
+              <div key={o} onClick={()=>{onChange(o);setOpen(false)}} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",fontSize:11,fontWeight:sel?700:500,color:sel?accent:C.cinzaEscuro,cursor:"pointer",background:sel?(dark?"rgba(147,189,228,.14)":`${C.azulProfundo}10`):"transparent"}}>
+                <ChipRadioDot active={sel} color={accent}/>{o}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
+}
+function ChipRadioDot({active,color}:{active:boolean,color:string}){
+  return <span style={{display:"flex",flexShrink:0,alignItems:"center",justifyContent:"center",width:14,height:14,borderRadius:"50%",border:`1.5px solid ${active?color:C.cardBorder}`}}>{active&&<span style={{width:6,height:6,borderRadius:"50%",background:color}}/>}</span>;
 }
 
 /* ═══════════════════ PDF Export ═══════════════════ */
@@ -126,7 +175,7 @@ function exportPDF(data: Row[], filters: Record<string,string|null>, totals: {va
     const fy=tTop-14-((pRows.length+1)*rowH)-8;
     s+="0.886 0.906 0.937 rg\n";s+=`${mx} ${fy} ${pageW-mx*2} 0.5 re f\n`;
     s+="BT\n0.318 0.38 0.427 rg\n";
-    s+=`${mx} ${fy-12} Td /F1 7 Tf (Total: R$ ${totals.valor}  |  ${data.length} requisicoes  |  DS-FIPS v0.4.0 - Ferrovia Interna do Porto de Santos) Tj\n`;
+    s+=`${mx} ${fy-12} Td /F1 7 Tf (Total: R$ ${totals.valor}  |  ${data.length} requisicoes  |  DS-FIPS v0.4.2 - Ferrovia Interna do Porto de Santos) Tj\n`;
     s+="ET\n";
 
     const streamRef=addObj(`<< /Length ${s.length} >>\nstream\n${s}endstream`);
@@ -192,6 +241,7 @@ const STATUS_D_META=[
   {label:"Pendentes",filterKey:"Recusada"},
 ];
 const DAYS_LABELS=["Seg","Ter","Qua","Qui","Sex"];
+const DARK_COLOR_MAP: Record<string,string> = {"#004B9B":"#93BDE4","#002A68":"#658EC9","#00904C":"#8BE5AD"};
 
 function getRowBreakdownValue(row: Row, breakdown: "status" | "dept" | "priority") {
   if (breakdown === "status") return row.status;
@@ -204,7 +254,7 @@ export default function DSFIPSDashboard(){
   const {dark}=useFipsTheme();
   const barColor=dark?"#93BDE4":"#004B9B";
   const barLabelColor=dark?"#E2E2E8":"#002A68";
-  const dkc=(c:string)=>dark?({"#004B9B":"#93BDE4","#002A68":"#658EC9","#00904C":"#8BE5AD"}[c]||c):c;
+  const dkc=useCallback((c:string)=>dark?(DARK_COLOR_MAP[c]||c):c,[dark]);
   const [w,setW]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
   const mob=w<640;
@@ -259,7 +309,7 @@ export default function DSFIPSDashboard(){
     if(hovBar===null)return null;
     const m=MONTHS[hovBar];const mData=allData.filter(r=>r.month===m);
     return{title:m,color:dkc(C.azulProfundo),total:mData.length,rows:STATUSES.map(s=>({label:s,value:mData.filter(r=>r.status===s).length,color:STATUS_COLOR[s]}))};
-  },[hovBar,allData,dark]);
+  },[hovBar,allData,dkc]);
 
   const tipDonutData=useMemo(()=>{
     if(hovDonut===null)return null;
@@ -289,41 +339,43 @@ export default function DSFIPSDashboard(){
     const src=meta.slaFilter?filtered.filter(r=>r.sla<50):meta.statusFilter?filtered.filter(r=>r.status===meta.statusFilter):filtered;
     const keys=lists[meta.breakdown];const clrs=colors[meta.breakdown];
     return{title:meta.label,color:dkc(meta.color),total:src.length,rows:keys.map(k=>({label:k,value:src.filter(r=>getRowBreakdownValue(r,meta.breakdown)===k).length,color:clrs[k]})).filter(r=>r.value>0).sort((a,b)=>b.value-a.value).slice(0,5)};
-  },[hovKpiCard,filtered,dark]);
+  },[hovKpiCard,filtered,dkc]);
 
   const tipStatusD=useMemo(()=>{
     if(hovStatusD<0)return null;
     const meta=STATUS_D_META[hovStatusD];
     const src=meta.filterKey?filtered.filter(r=>r.status===meta.filterKey):filtered;
     return{title:meta.label,color:[dkc(C.azulProfundo),C.verdeFloresta,C.amareloEscuro,C.danger][hovStatusD],total:src.length,rows:DEPTS.map(d=>({label:d,value:src.filter(r=>r.dept===d).length,color:DEPT_COLOR[d]})).filter(r=>r.value>0).sort((a,b)=>b.value-a.value).slice(0,5)};
-  },[hovStatusD,filtered]);
+  },[hovStatusD,filtered,dkc]);
 
   const tipSideLine=useMemo(()=>{
     if(hovSideLine<0)return null;
     const m=MONTHS[hovSideLine];const mData=allData.filter(r=>r.month===m);
     return{title:`${m} — Tendência`,color:dkc(C.azulProfundo),total:mData.length,rows:STATUSES.map(s=>({label:s,value:mData.filter(r=>r.status===s).length,color:STATUS_COLOR[s]}))};
-  },[hovSideLine,allData,dark]);
+  },[hovSideLine,allData,dkc]);
 
-  const sideBarVals=useMemo(()=>DAYS_LABELS.map(()=>Math.round(filtered.length*(0.15+Math.random()*0.12))),[filtered.length]);
+  // Determinístico de propósito: Math.random() no render viola a pureza e fazia as
+  // barras dançarem a cada recálculo. O fator vem do índice do dia.
+  const sideBarVals=useMemo(()=>DAYS_LABELS.map((_,i)=>Math.round(filtered.length*(0.15+((i*97)%13)/100))),[filtered.length]);
   const tipSideBarData=useMemo(()=>{
     if(hovSideBar<0)return null;
     const d=DAYS_LABELS[hovSideBar];
     return{title:`${d} — Requisições`,color:dkc(C.azulProfundo),total:Math.round(filtered.length*0.2),rows:[{label:"Manhã (8h–12h)",value:Math.round(filtered.length*0.09),color:C.azulCeu},{label:"Tarde (13h–17h)",value:Math.round(filtered.length*0.08),color:dkc(C.azulProfundo)},{label:"Noite (18h+)",value:Math.round(filtered.length*0.03),color:dkc(C.azulEscuro)}]};
-  },[hovSideBar,filtered,dark]);
+  },[hovSideBar,filtered,dkc]);
 
   const comboData=useMemo(()=>MONTHS.map(m=>{const mf=filtered.filter(r=>r.month===m);return{l:m,abertas:mf.length,concluidas:mf.filter(r=>r.status==="Finalizada").length,sla:mf.length?Math.round(mf.reduce((a,r)=>a+r.sla,0)/mf.length):0}}),[filtered]);
   const tipCombo=useMemo(()=>{
     if(hovCombo<0)return null;
     const d=comboData[hovCombo];
     return{title:d.l,color:dkc(C.azulProfundo),total:d.abertas,rows:[{label:"Abertas",value:d.abertas,color:dkc(C.azulProfundo)},{label:"Concluídas",value:d.concluidas,color:C.verdeFloresta},{label:"SLA médio",value:d.sla,color:d.sla>=70?C.verdeFloresta:d.sla>=50?C.amareloEscuro:C.danger}]};
-  },[hovCombo,comboData,dark]);
+  },[hovCombo,comboData,dkc]);
 
   const stackedData=useMemo(()=>MONTHS.map(m=>{const mf=filtered.filter(r=>r.month===m);return{l:m,segs:STATUSES.map(s=>({s,v:mf.filter(r=>r.status===s).length,color:STATUS_COLOR[s]}))}}),[filtered]);
   const tipStacked=useMemo(()=>{
     if(hovStacked<0)return null;
     const d=stackedData[hovStacked];const tot=d.segs.reduce((a,s)=>a+s.v,0);
     return{title:d.l,color:dkc(C.azulProfundo),total:tot,rows:d.segs.filter(s=>s.v>0).map(s=>({label:s.s,value:s.v,color:s.color}))};
-  },[hovStacked,stackedData,dark]);
+  },[hovStacked,stackedData,dkc]);
 
   const kpis=[
     {label:"Solicitações",value:total,delta:`${total>150?"+":""}${Math.round((total/allData.length)*100)}%`,up:true,icon:(s:number,c:string)=><LuFileText size={s} color={c}/>,color:C.azulProfundo,spark:sparkByMonth,deltaDesc:"do total filtrado"},
@@ -338,8 +390,7 @@ export default function DSFIPSDashboard(){
   return(
     <div style={{minHeight:"100vh",background:"var(--color-surface-muted)",fontFamily:Fn.body,color:C.cinzaEscuro}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Saira+Expanded:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
-      `}</style>
+`}</style>
 
       {/* ═══ HERO ═══ */}
       <header style={{background:`linear-gradient(135deg,${C.azulProfundo} 0%,${C.azulEscuro} 100%)`,padding:mob?"32px 20px":"48px 40px 44px",position:"relative",overflow:"hidden"}}>
@@ -347,14 +398,14 @@ export default function DSFIPSDashboard(){
         <div style={{position:"relative"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:6,background:`${C.branco}10`,border:`1px solid ${C.branco}18`,borderRadius:20,padding:"5px 14px",fontSize:11,fontWeight:600,letterSpacing:"1.5px",textTransform:"uppercase",color:C.amareloOuro,fontFamily:Fn.title,marginBottom:16}}><LuLayoutGrid size={14} color={C.amareloOuro}/> Design System FIPS</div>
           <h1 style={{fontSize:mob?30:44,fontWeight:700,color:C.branco,margin:"0 0 10px",fontFamily:Fn.title}}>Dashboard</h1>
-          <p style={{fontSize:16,color:`${C.branco}B0`,lineHeight:1.6,maxWidth:700,margin:0,fontFamily:Fn.body}}>Padrão de painel operacional com KPIs, gráficos interativos, barra de filtros e tabela de dados. Estrutura fixa para relatórios e visões consolidadas de módulos FIPS.</p>
+          <p style={{fontSize:16,color:`${C.branco}B0`,lineHeight:1.6,maxWidth:700,margin:0,fontFamily:Fn.body}}>Padrão de painel operacional com KPIs, gráficos interativos, barra de filtros e tabela de dados.</p>
         </div>
       </header>
 
       <div style={{padding:mob?"16px 12px 32px":"24px 40px 48px",maxWidth:1200,margin:"0 auto"}}>
 
         {/* ═══ BARRA DE FILTROS ═══ */}
-        <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:mob?"12px":"14px 20px",marginBottom:mob?16:20,boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
+        <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:mob?"12px":"14px 20px",marginBottom:mob?16:28,boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <LuLayoutGrid size={16} color={dark?"#93BDE4":C.azulProfundo}/>
@@ -362,17 +413,17 @@ export default function DSFIPSDashboard(){
               {hasFilter&&<span style={{fontSize:10,color:C.textMuted,fontFamily:Fn.body}}>· {filtered.length} de {allData.length}</span>}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <button onClick={()=>exportPDF(filtered,filter,{valor:filtered.reduce((a,r)=>a+r.valor,0).toLocaleString("pt-BR")})} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",fontSize:10,fontWeight:600,color:C.danger,background:`${C.danger}08`,border:`1px solid ${C.danger}20`,borderRadius:6,cursor:"pointer",fontFamily:Fn.body}} title="Gerar relatório PDF"><LuFileDown size={12} color={C.danger}/> Relatório</button>
+              <button onClick={()=>exportPDF(filtered,filter,{valor:filtered.reduce((a,r)=>a+r.valor,0).toLocaleString("pt-BR")})} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",fontSize:10,fontWeight:600,color:C.danger,background:`${C.danger}12`,border:`1px solid ${C.danger}30`,borderRadius:6,cursor:"pointer",fontFamily:Fn.body}} title="Gerar relatório PDF"><LuFileDown size={12} color={C.danger}/> Relatório</button>
               {hasFilter&&<button onClick={clearAll} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",fontSize:10,fontWeight:600,color:C.cinzaChumbo,background:C.bg,border:`1px solid ${C.cardBorder}`,borderRadius:6,cursor:"pointer",fontFamily:Fn.body}}><LuX size={10} color={C.cinzaChumbo}/> Limpar</button>}
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:mob?"1fr 1fr 1fr":"repeat(6,1fr)",gap:mob?8:12}}>
-            <DSSelect label="Área / Processo" value={filter.dept} onChange={v=>setF("dept",v)} options={DEPTS} icon={<LuBuilding2 size={14} color={C.cinzaChumbo}/>}/>
-            <DSSelect label="Ano" value={filter.year} onChange={v=>setF("year",v)} options={YEARS} icon={<LuCalendar size={14} color={C.cinzaChumbo}/>}/>
-            <DSSelect label="Mês" value={filter.month} onChange={v=>setF("month",v)} options={MONTHS} icon={<LuCalendar size={14} color={C.cinzaChumbo}/>}/>
-            <DSSelect label="Solicitante" value={filter.sol} onChange={v=>setF("sol",v)} options={NAMES} icon={<LuUser size={14} color={C.cinzaChumbo}/>}/>
-            <DSSelect label="Prioridade" value={filter.priority} onChange={v=>setF("priority",v)} options={PRIORITIES} placeholder="Todas" icon={<LuFlag size={14} color={C.cinzaChumbo}/>}/>
-            <DSSelect label="Status" value={filter.status} onChange={v=>setF("status",v)} options={STATUSES} icon={<LuCircleCheck size={14} color={C.cinzaChumbo}/>}/>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            <ChipSelect label="Área / Processo" value={filter.dept} onChange={v=>setF("dept",v)} options={DEPTS} icon={<LuBuilding2 size={14} color={C.cinzaChumbo}/>}/>
+            <ChipSelect label="Ano" value={filter.year} onChange={v=>setF("year",v)} options={YEARS} icon={<LuCalendar size={14} color={C.cinzaChumbo}/>}/>
+            <ChipSelect label="Mês" value={filter.month} onChange={v=>setF("month",v)} options={MONTHS} icon={<LuCalendar size={14} color={C.cinzaChumbo}/>}/>
+            <ChipSelect label="Solicitante" value={filter.sol} onChange={v=>setF("sol",v)} options={NAMES} icon={<LuUser size={14} color={C.cinzaChumbo}/>}/>
+            <ChipSelect label="Prioridade" value={filter.priority} onChange={v=>setF("priority",v)} options={PRIORITIES} placeholder="Todas" icon={<LuFlag size={14} color={C.cinzaChumbo}/>}/>
+            <ChipSelect label="Status" value={filter.status} onChange={v=>setF("status",v)} options={STATUSES} icon={<LuCircleCheck size={14} color={C.cinzaChumbo}/>}/>
           </div>
         </div>
 
@@ -446,7 +497,7 @@ export default function DSFIPSDashboard(){
                   <div style={{width:30,height:30,borderRadius:8,background:dark?"rgba(147,189,228,0.04)":`${C.azulProfundo}0A`,display:"flex",alignItems:"center",justifyContent:"center"}}><LuChartColumnIncreasing size={14} color={dark?"#93BDE4":C.azulProfundo}/></div>
                 </div>
                 <div style={{display:"flex",justifyContent:"center"}}>
-                  <svg width={chartW} height={chartH+40} viewBox={`0 -20 ${chartW} ${chartH+40}`}>
+                  <svg width={chartW} height={chartH+48} viewBox={`0 -28 ${chartW} ${chartH+48}`}>
                     {byMonth.map((d,i)=>{
                       const bh=max?Math.max(4,(d.v/max)*chartH):4;const x=i*(bw+gp);
                       const isActive=filter.month===d.l;const isDimmed=filter.month&&!isActive;
@@ -469,7 +520,7 @@ export default function DSFIPSDashboard(){
           {(()=>{
             const total2=byStatus.reduce((a,s)=>a+s.value,0)||1;
             const size=120,cx=size/2,cy=size/2,r=44,sw=14;
-            let acc=0;const circ=2*Math.PI*r;
+            const circ=2*Math.PI*r;
             return(
               <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${filter.status?STATUS_COLOR[filter.status]:C.cardBorder}`,padding:mob?14:20,boxShadow:"0 1px 3px rgba(0,75,155,.04)",transition:"border-color .15s",position:"relative"}} onMouseMove={trackMouse}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
@@ -479,7 +530,7 @@ export default function DSFIPSDashboard(){
                 <div style={{display:"flex",alignItems:"center",gap:mob?12:20,justifyContent:"center"}}>
                   <div style={{position:"relative"}}>
                     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{transform:"rotate(-90deg)"}}>
-                      {byStatus.map((s,i)=>{const pct=s.value/total2;const dash=pct*circ;const off=acc*circ;acc+=pct;const isActive=filter.status===s.label;const isDimmed=filter.status&&!isActive;return <circle key={`v${i}`} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={hovDonut===i?sw+4:sw} strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} strokeLinecap="round" opacity={isDimmed?.2:1} style={{transition:"all .15s",pointerEvents:"none"}}/>})}
+                      {(()=>{let a1=0;return byStatus.map((s,i)=>{const pct=s.value/total2;const dash=pct*circ;const off=a1*circ;a1+=pct;const isActive=filter.status===s.label;const isDimmed=filter.status&&!isActive;return <circle key={`v${i}`} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={hovDonut===i?sw+4:sw} strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} strokeLinecap="round" opacity={isDimmed?.2:1} style={{transition:"all .15s",pointerEvents:"none"}}/>})})()}
                       {(()=>{let a2=0;return byStatus.map((s,i)=>{const pct=s.value/total2;const dash=pct*circ;const off=a2*circ;a2+=pct;return <circle key={`h${i}`} cx={cx} cy={cy} r={r} fill="none" stroke="transparent" strokeWidth={30} strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} style={{cursor:"pointer"}} onClick={()=>toggle("status",s.label)} onMouseEnter={()=>setHovDonut(i)} onMouseLeave={()=>setHovDonut(null)}/>})})()}
                     </svg>
                     <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}>
@@ -682,7 +733,7 @@ export default function DSFIPSDashboard(){
               <table style={{width:"100%",borderCollapse:"collapse",fontFamily:Fn.body}}>
                 <thead><tr style={{background:C.bg}}>
                   {(mob?["Código","Status","SLA"]:["Código","Solicitante","Depto","Status","SLA","Valor"]).map(h=>(
-                    <th key={h} style={{padding:"12px 16px",textAlign:"center",fontSize:10,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,whiteSpace:"nowrap"}}>{h}</th>
+                    <th key={h} style={{padding:"12px 16px",textAlign:"center",fontSize:10,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaEscuro,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,whiteSpace:"nowrap"}}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
@@ -1004,7 +1055,7 @@ export default function DSFIPSDashboard(){
 */
 
 const kpis = [
-  { label: 'Total', value: '1.247', delta: '+12%', up: true, color: 'var(--color-primary)' },
+  { label: 'Total', value: '1.247', delta: '+12%', up: true, color: '#004B9B' },
   { label: 'Aprovados', value: '892', delta: '+8%', up: true, color: 'var(--color-success)' },
   { label: 'Pendentes', value: '234', delta: '-3%', up: false, color: 'var(--color-accent-strong)' },
   { label: 'Urgentes', value: '121', delta: '+5%', up: true, color: 'var(--color-danger)' },
@@ -1015,12 +1066,12 @@ function KPIGrid() {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
       {kpis.map(kpi => (
         <div key={kpi.label} style={{
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
           borderRadius: '12px 12px 12px 24px',
           padding: 20,
         }}>
-          <p style={{ fontSize: 12, color: 'var(--color-fg-muted)' }}>{kpi.label}</p>
+          <p style={{ fontSize: 12, color: '#7B8C96' }}>{kpi.label}</p>
           <p style={{ fontSize: 28, fontWeight: 700, fontFamily: "'Saira Expanded', sans-serif", color: kpi.color }}>
             {kpi.value}
           </p>
@@ -1049,7 +1100,7 @@ function KPIGrid() {
 
 function DashboardPage() {
   return (
-    <div style={{ background: 'var(--color-surface-muted)', minHeight: '100vh' }}>
+    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
       {/* Header Navy — gradiente azul com titulo do modulo */}
       <div style={{
         background: 'linear-gradient(135deg, var(--color-gov-gradient-from), var(--color-gov-gradient-to))',
@@ -1079,7 +1130,7 @@ function DashboardPage() {
         ]} />
 
         <div style={{textAlign:"center",padding:"24px 0 0",marginTop:24}}>
-          <span style={{fontSize:11,color:C.cinzaChumbo,letterSpacing:".5px",fontFamily:Fn.title,fontWeight:400}}>DS-FIPS v0.4.0 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
+          <span style={{fontSize:11,color:C.cinzaChumbo,letterSpacing:".5px",fontFamily:Fn.title,fontWeight:400}}>DS-FIPS v0.4.2 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
         </div>
       </div>
     </div>

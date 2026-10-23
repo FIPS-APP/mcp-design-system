@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { CodeExportSection } from '../../components/CodeExport'
+import { PlaygroundProvider, Copyable, CodePlayground } from '../../components/CodePlayground'
 import { useFipsTheme } from '../../../hooks/useFipsTheme'
 import {
   AppWindow,
   Bell,
   BookOpen,
   Briefcase,
+  Check,
   ChevronDown,
   FilePlus,
   FileText,
@@ -14,6 +16,7 @@ import {
   GraduationCap,
   Home,
   LayoutDashboard,
+  ListChecks,
   Menu,
   PanelLeft,
   Settings,
@@ -29,6 +32,9 @@ import {
 import { RuleCards } from '../../components/RuleCards'
 import { Badge } from '../../../components/ui/badge'
 import { DocHeaderSectionNavDemo } from '../../../components/layout/DocHeaderSectionNav'
+import { DocHeaderNeuIconButton } from '../../../components/layout/DocHeaderNeuIconButton'
+import { UserChip } from '../../../components/layout/UserChip'
+import { DEFAULT_FIPS_USER_ID, FIPS_ROLE_COLOR, fipsUserById, fipsUserInitials } from '../../data/users'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent } from '../../../components/ui/card'
 import { cn } from '../../../lib/cn'
@@ -141,7 +147,19 @@ const heroCards: MetricCard[] = [
   },
 ]
 
-const contentHighlights = ['Bloco visual 1', 'Bloco visual 2', 'Bloco visual 3']
+const contentHighlights: Array<{
+  icon: LucideIcon
+  label: string
+  caption: string
+  iconBg: string
+  iconColor: string
+}> = [
+  { icon: LayoutDashboard, label: 'Bloco visual 1', caption: 'Área de conteúdo do módulo', iconBg: 'bg-[#eaf1ff]', iconColor: 'text-[#2c74ff]' },
+  { icon: FileText, label: 'Bloco visual 2', caption: 'Listagens, formulários ou cards', iconBg: 'bg-[#f4eafe]', iconColor: 'text-[#9333ea]' },
+  { icon: Sparkles, label: 'Bloco visual 3', caption: 'Destaques e ações rápidas', iconBg: 'bg-[#e8fbef]', iconColor: 'text-[#00a843]' },
+]
+
+const complementRows = ['Linha visual 1', 'Linha visual 2', 'Linha visual 3']
 
 const secondaryNotes = [
   'Hierarquia forte entre menu, hero e conteúdo.',
@@ -375,19 +393,25 @@ function ShellMenuAutoButton({ collapsed }: { collapsed: boolean }) {
         />
       </ShellNeuIcon>
       {!collapsed ? (
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 400,
-            letterSpacing: '0.01em',
-            color: hovered ? NEU.textHover : NEU.textMuted,
-            transition: 'color 0.15s ease',
-            textAlign: 'left',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Menu automático
-        </span>
+        <>
+          <span
+            style={{
+              flex: 1,
+              fontSize: 13,
+              fontWeight: 400,
+              letterSpacing: '0.01em',
+              color: hovered ? NEU.textHover : NEU.textMuted,
+              transition: 'color 0.15s ease',
+              textAlign: 'left',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Modo menu
+          </span>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: dark ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.4)' }}>
+            Manual
+          </span>
+        </>
       ) : null}
     </button>
   )
@@ -427,7 +451,7 @@ function ShellSidebar({
           className="flex items-center"
           style={{
             justifyContent: collapsed ? 'center' : 'flex-start',
-            gap: collapsed ? 0 : 14,
+            gap: collapsed ? 0 : 2,
             minWidth: 0,
             width: collapsed ? 'auto' : '100%',
           }}
@@ -438,7 +462,7 @@ function ShellSidebar({
             style={
               collapsed
                 ? { width: 36, height: 36, objectFit: 'contain', flexShrink: 0, display: 'block' }
-                : { height: 52, width: 'auto', maxWidth: 148, minWidth: 72, objectFit: 'contain', objectPosition: 'left center', flexShrink: 0, display: 'block' }
+                : { height: 52, width: 'auto', maxWidth: 100, minWidth: 60, objectFit: 'contain', objectPosition: 'left center', flexShrink: 0, display: 'block' }
             }
           />
           {!collapsed ? (
@@ -544,13 +568,13 @@ function HeroMetricCard({ metric }: { metric: MetricCard }) {
 
   return (
     <Card className={cn('border-l-4 backdrop-blur-sm', dark ? 'bg-[#222222] shadow-[0_16px_40px_rgba(0,0,0,0.3)]' : 'bg-white/[0.96] shadow-[0_16px_40px_rgba(6,37,74,0.14)]', metric.border)}>
-      <CardContent className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium text-[var(--color-fg-muted)]">{metric.label}</p>
-          <p className="mt-1 text-3xl font-semibold text-[var(--color-primary)]">{metric.value}</p>
+      <CardContent className="flex items-center justify-between gap-2.5 p-3.5">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-medium text-[var(--color-fg-muted)]">{metric.label}</p>
+          <p className="mt-0.5 text-2xl font-semibold text-[var(--color-primary)]">{metric.value}</p>
         </div>
-        <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl', dark ? 'bg-white/[0.06]' : metric.iconBg, metric.iconColor)}>
-          <Icon className="h-5 w-5" aria-hidden />
+        <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', dark ? 'bg-white/[0.06]' : metric.iconBg, metric.iconColor)}>
+          <Icon className="h-3.5 w-3.5" aria-hidden />
         </div>
       </CardContent>
     </Card>
@@ -596,44 +620,48 @@ function ShellCanvas({
         {/* Header — bloco separado estilo Tecnopano */}
         <header className={cn('z-20 flex shrink-0 items-center gap-3 border-b px-4 py-2.5', dark ? 'border-[#2E2E2E] bg-[#252525]' : 'border-[#e5e5e5] bg-[#f5f5f5]')}>
           {isMobile ? (
-            <button
-              type="button"
-              onClick={onToggleMobileDrawer}
-              className={cn('flex h-9 w-9 items-center justify-center rounded-[10px] border', dark ? 'border-[#3a3a3a] bg-[#222222] text-[#E2E2E8]' : 'border-black/[0.10] bg-white/90 text-neutral-800')}
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-[17px] w-[17px]" aria-hidden />
-            </button>
+            <DocHeaderNeuIconButton ariaLabel="Abrir menu" dark={dark} onClick={onToggleMobileDrawer}>
+              <Menu className="h-[17px] w-[17px]" aria-hidden strokeWidth={1.9} />
+            </DocHeaderNeuIconButton>
           ) : null}
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {!isMobile ? (
-              <button type="button" onClick={isDesktop ? onToggleDesktopSidebar : undefined} className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA] hover:bg-[#333]' : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50')} aria-label="Recolher menu">
+              <DocHeaderNeuIconButton ariaLabel="Recolher menu" dark={dark} onClick={isDesktop ? onToggleDesktopSidebar : undefined}>
                 <PanelLeft className={cn('h-[17px] w-[17px] transition-transform duration-200', isDesktop && desktopCollapsed && 'rotate-180')} aria-hidden strokeWidth={1.9} />
-              </button>
+              </DocHeaderNeuIconButton>
             ) : null}
-            <div className="flex items-center gap-1.5 text-sm">
-              <span className={dark ? 'text-[#A1A1AA]' : 'text-neutral-400'}>Padrões</span>
-              <span className={dark ? 'text-[#3a3a3a]' : 'text-neutral-300'}>/</span>
-              <span className={cn('font-semibold', dark ? 'text-[#E2E2E8]' : 'text-neutral-800')}>Home</span>
-            </div>
+            {isMobile ? (
+              <div className="flex h-8 w-auto shrink-0 items-center justify-center">
+                <img src="/appfips-logo-full.png" alt="App FIPS" className="h-full w-auto object-contain" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className={dark ? 'text-[#A1A1AA]' : 'text-neutral-400'}>Padrões</span>
+                <span className={dark ? 'text-[#3a3a3a]' : 'text-neutral-300'}>/</span>
+                <span className={cn('font-semibold', dark ? 'text-[#E2E2E8]' : 'text-neutral-800')}>Home</span>
+              </div>
+            )}
           </div>
-          {!isMobile ? (
-            <div className={cn('hidden h-8 w-full max-w-[160px] items-center gap-2 rounded-lg border px-3 text-sm md:flex', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA]' : 'border-neutral-200 bg-white text-neutral-400')}>
-              <span className="text-xs">Q</span> Buscar...
-            </div>
-          ) : null}
           <div className="flex shrink-0 items-center gap-2">
-            {[Bell, ...(isMobile ? [] : [GraduationCap, SunMoon])].map((Icon, i) => (
-              <button key={i} type="button" className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#A1A1AA] hover:bg-[#333]' : 'border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50')}>
+            {[Bell, GraduationCap, SunMoon].map((Icon, i) => (
+              <DocHeaderNeuIconButton key={i} ariaLabel={['Notificações', 'Tutorial', 'Tema'][i] ?? 'Ação'} dark={dark}>
                 <Icon className="h-[17px] w-[17px]" aria-hidden strokeWidth={1.9} />
-              </button>
+              </DocHeaderNeuIconButton>
             ))}
-            <div className={cn('mx-0.5 h-6 w-px shrink-0', dark ? 'bg-[#3a3a3a]' : 'bg-neutral-300', isMobile && 'hidden')} />
-            <div className={cn('flex h-8 items-center gap-2 rounded-lg border px-2 text-xs font-semibold', dark ? 'border-[#3a3a3a] bg-[#2a2a2a] text-[#E2E2E8]' : 'border-neutral-200 bg-white text-neutral-700')}>
-              <span className={cn('flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white', dark ? 'bg-[#F6921E]' : 'bg-[#F6921E]')}>AF</span>
-              {!isMobile && <span>Usuário</span>}
-              {!isMobile && <ChevronDown className="h-3 w-3 opacity-40" />}
-            </div>
+            {isMobile ? (
+              <span
+                aria-label="Conta: Fipinho Santista"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-white"
+                style={{ background: FIPS_ROLE_COLOR[fipsUserById(DEFAULT_FIPS_USER_ID).role] }}
+              >
+                {fipsUserInitials(fipsUserById(DEFAULT_FIPS_USER_ID).name)}
+              </span>
+            ) : (
+              <>
+                <div className={cn('mx-0.5 h-6 w-px shrink-0', dark ? 'bg-[#3a3a3a]' : 'bg-neutral-300')} />
+                <UserChip variant="docHeader" dark={dark} />
+              </>
+            )}
           </div>
         </header>
 
@@ -644,15 +672,18 @@ function ShellCanvas({
         ) : null}
 
         <div className="relative overflow-hidden">
+          {/* Fundo institucional — padrão FIPS real (igual HomePage): imagem full-bleed + overlay azul + vinheta */}
           <div className="absolute inset-0">
             <img
               src={HOME_BACKGROUND}
               alt=""
-              className="h-full w-full object-cover object-center"
+              aria-hidden
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover object-center"
               draggable={false}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(118deg,rgba(0,19,56,0.92)_0%,rgba(0,63,138,0.82)_44%,rgba(0,144,208,0.58)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(0,42,104,0.52),transparent_30%)]" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[#002A68]/60 via-[#002A68]/45 to-[#002A68]/60" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/15" />
           </div>
 
           <section
@@ -686,10 +717,10 @@ function ShellCanvas({
               </p>
 
               <div className={cn('mt-7 flex gap-3', isMobile ? 'flex-col' : 'justify-center')}>
-                <Button variant="accent" size="lg">
+                <Button variant="accent" size="sm">
                   Ação Primária
                 </Button>
-                <Button variant="inverseOutline" size="lg">
+                <Button variant="inverseOutline" size="sm">
                   Ação Secundária
                 </Button>
               </div>
@@ -716,15 +747,24 @@ function ShellCanvas({
                   </p>
                 </div>
 
-                <div className={cn('grid gap-3', isMobile ? 'grid-cols-1' : 'sm:grid-cols-3')}>
-                  {contentHighlights.map((item) => (
-                    <div
-                      key={item}
-                      className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 text-sm font-medium text-[var(--color-fg)]"
-                    >
-                      {item}
-                    </div>
-                  ))}
+                <div className="flex flex-col gap-2.5">
+                  {contentHighlights.map((block) => {
+                    const BlockIcon = block.icon
+                    return (
+                      <div
+                        key={block.label}
+                        className="flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-3 transition-colors hover:border-[var(--color-primary)]/30"
+                      >
+                        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', dark ? 'bg-white/[0.06]' : block.iconBg, block.iconColor)}>
+                          <BlockIcon className="h-4 w-4" aria-hidden />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[var(--color-fg)]">{block.label}</p>
+                          <p className="truncate text-xs leading-5 text-[var(--color-fg-muted)]">{block.caption}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <div className={cn('grid gap-3', isMobile ? 'grid-cols-1' : 'sm:grid-cols-2')}>
@@ -743,8 +783,9 @@ function ShellCanvas({
                       Complemento
                     </p>
                     <div className="mt-3 space-y-2.5">
-                      {['Linha visual 1', 'Linha visual 2', 'Linha visual 3'].map((item) => (
-                        <div key={item} className="rounded-2xl bg-[var(--color-surface-soft)] px-4 py-3 text-sm text-[var(--color-fg-muted)]">
+                      {complementRows.map((item) => (
+                        <div key={item} className="flex items-center gap-2.5 rounded-2xl bg-[var(--color-surface-soft)] px-4 py-3 text-sm text-[var(--color-fg-muted)]">
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-accent-strong)]" aria-hidden />
                           {item}
                         </div>
                       ))}
@@ -754,17 +795,24 @@ function ShellCanvas({
               </CardContent>
             </Card>
 
-            <Card className="border-[var(--color-border)] shadow-[0_24px_60px_rgba(6,37,74,0.08)]">
-              <CardContent className="space-y-3">
-                <p className="text-sm font-semibold text-[var(--color-fg)]">Notas visuais</p>
-                {secondaryNotes.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3 text-sm leading-6 text-[var(--color-fg-muted)]"
-                  >
-                    {item}
-                  </div>
-                ))}
+            <Card className="self-start border-[var(--color-border)] shadow-[0_24px_60px_rgba(6,37,74,0.08)]">
+              <CardContent>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--color-success)]/12 text-[var(--color-success)]">
+                    <ListChecks className="h-3.5 w-3.5" aria-hidden />
+                  </span>
+                  <p className="text-sm font-semibold text-[var(--color-fg)]">Notas visuais</p>
+                </div>
+                <div className="divide-y divide-[var(--color-border)]/60">
+                  {secondaryNotes.map((item) => (
+                    <div key={item} className="flex items-start gap-3 py-3 last:pb-0">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-success)]/14 text-[var(--color-success)]">
+                        <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+                      </span>
+                      <p className="text-sm leading-6 text-[var(--color-fg)]">{item}</p>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -793,6 +841,143 @@ function ShellCanvas({
   )
 }
 
+/* ── Helper: código copy-paste-ready para o Playground ── */
+function shellCode(variant: 'desktop' | 'tablet' | 'mobile') {
+  if (variant === 'mobile') return `// DS-FIPS — Application Shell Mobile — Copy-paste ready
+import { useState } from 'react'
+
+export function AppShellMobile() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const menuItems = [
+    { label: 'Home', active: true },
+    { label: 'Requisicoes' },
+    { label: 'Cadastros' },
+    { label: 'Relatorios' },
+  ]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#F3F6FB' }}>
+      {drawerOpen && (
+        <>
+          <div onClick={() => setDrawerOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(4,19,39,0.48)', zIndex: 30 }} />
+          <aside style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 252, background: '#002A68', color: '#fff', zIndex: 40, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 59, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 16px', display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontFamily: "'Saira Expanded', sans-serif", fontWeight: 700, fontSize: 16, color: '#fafafa' }}>App FIPS</span>
+            </div>
+            <nav style={{ flex: 1, padding: '12px 8px' }}>
+              {menuItems.map(item => (
+                <div key={item.label} style={{ padding: '10px 12px', borderRadius: 8, marginBottom: 4, background: item.active ? 'rgba(246,146,30,0.15)' : 'transparent', color: item.active ? '#FDC24E' : 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: item.active ? 600 : 400, cursor: 'pointer' }}>
+                  {item.label}
+                </div>
+              ))}
+            </nav>
+          </aside>
+        </>
+      )}
+      <header style={{ height: 48, padding: '0 16px', borderBottom: '1px solid #E2E8F0', background: '#F5F5F5', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={() => setDrawerOpen(true)} style={{ background: 'none', border: '1px solid #E2E8F0', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', fontSize: 16 }}>&#9776;</button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#333B41' }}>Home</span>
+      </header>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(118deg, rgba(0,19,56,0.92) 0%, rgba(0,63,138,0.82) 44%, rgba(0,144,208,0.58) 100%)' }} />
+        <div style={{ position: 'relative', padding: '40px 16px', textAlign: 'left' }}>
+          <h2 style={{ fontSize: 24, fontWeight: 600, color: '#fff', fontFamily: "'Saira Expanded', sans-serif", margin: 0 }}>
+            Home do <span style={{ color: '#F6921E' }}>Aplicativo FIPS</span>
+          </h2>
+        </div>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+        <p style={{ color: '#7B8C96', fontSize: 14 }}>Conteudo da pagina aqui.</p>
+      </div>
+    </div>
+  )
+}`
+
+  return `// DS-FIPS — Application Shell ${variant === 'tablet' ? 'Tablet' : 'Desktop'} — Copy-paste ready
+import { useState } from 'react'
+
+export function AppShell${variant === 'tablet' ? 'Tablet' : 'Desktop'}() {
+  const [collapsed, setCollapsed] = useState(${variant === 'tablet' ? 'true' : 'false'})
+
+  const menuItems = [
+    { label: 'Home', active: true },
+    { label: 'Requisicoes' },
+    { label: 'Cadastros' },
+    { label: 'Relatorios' },
+  ]
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: '#F3F6FB' }}>
+      <aside style={{
+        width: ${variant === 'tablet' ? '76' : 'collapsed ? 76 : 256'},
+        background: '#002A68', color: '#fff',
+        display: 'flex', flexDirection: 'column',
+        transition: 'width 0.2s ease',
+        flexShrink: 0,
+      }}>
+        <div style={{ height: 59, borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 16px', display: 'flex', alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Saira Expanded', sans-serif", fontWeight: 700, fontSize: ${variant === 'tablet' ? '0' : 'collapsed ? 0 : 16'}, color: '#fafafa', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            ${variant === 'tablet' ? '' : '{!collapsed && "App FIPS"}'}
+          </span>
+        </div>
+        <nav style={{ flex: 1, overflow: 'auto', padding: '12px 8px' }}>
+          {menuItems.map(item => (
+            <div key={item.label} style={{
+              padding: ${variant === 'tablet' ? "'10px 0'" : "'10px 12px'"},
+              borderRadius: 8, marginBottom: 4,
+              background: item.active ? 'rgba(246,146,30,0.15)' : 'transparent',
+              color: item.active ? '#FDC24E' : 'rgba(255,255,255,0.75)',
+              fontSize: 13, fontWeight: item.active ? 600 : 400,
+              textAlign: ${variant === 'tablet' ? "'center'" : "'left'"},
+              cursor: 'pointer',
+            }}>
+              ${variant === 'tablet' ? "item.label.charAt(0)" : "item.label"}
+            </div>
+          ))}
+        </nav>
+      </aside>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <header style={{ height: 48, padding: '0 16px', borderBottom: '1px solid #E2E8F0', background: '#F5F5F5', display: 'flex', alignItems: 'center', gap: 12 }}>
+          ${variant === 'tablet' ? '' : '<button onClick={() => setCollapsed(c => !c)} style={{ background: "none", border: "1px solid #E2E8F0", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 14 }}>&#9776;</button>'}
+          <span style={{ fontSize: 14, color: '#7B8C96' }}>Padroes</span>
+          <span style={{ color: '#CBD5E1' }}>/</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#333B41' }}>Home</span>
+        </header>
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(118deg, rgba(0,19,56,0.92) 0%, rgba(0,63,138,0.82) 44%, rgba(0,144,208,0.58) 100%)' }} />
+          <div style={{ position: 'relative', padding: '64px 32px', textAlign: 'center' }}>
+            <h2 style={{ fontSize: 36, fontWeight: 600, color: '#fff', fontFamily: "'Saira Expanded', sans-serif", margin: 0 }}>
+              Home do <span style={{ color: '#F6921E' }}>Aplicativo FIPS</span>
+            </h2>
+          </div>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          <p style={{ color: '#7B8C96', fontSize: 14 }}>Conteudo da pagina aqui.</p>
+        </div>
+      </div>
+    </div>
+  )
+}`
+}
+
+function shellPreview(variant: 'desktop' | 'tablet' | 'mobile') {
+  const labels: Record<string, string> = {
+    desktop: 'Desktop — sidebar + hero + cards',
+    tablet: 'Tablet — rail + hero compacto',
+    mobile: 'Mobile — drawer + hero empilhado',
+  }
+  return (
+    <div style={{ padding: 12, textAlign: 'center' }}>
+      <div style={{ background: 'linear-gradient(135deg, #002A68, #004B9B)', borderRadius: 8, padding: '16px 12px', color: '#fff', fontSize: 11, fontFamily: "'Saira Expanded', sans-serif" }}>
+        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, color: '#FDC24E', marginBottom: 4 }}>App Shell</div>
+        <strong>{labels[variant]}</strong>
+      </div>
+    </div>
+  )
+}
+
 export default function ApplicationShellDemo() {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
@@ -808,6 +993,7 @@ export default function ApplicationShellDemo() {
   }
 
   return (
+    <PlaygroundProvider>
     <div style={{ minHeight: '100vh', background: 'var(--color-surface-muted)', fontFamily: "'Open Sans', sans-serif", color: 'var(--color-fg)' }}>
       {/* HEADER HERO */}
       <header style={{ background: 'linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 100%)', padding: '48px 40px 44px', position: 'relative', overflow: 'hidden' }}>
@@ -850,12 +1036,13 @@ export default function ApplicationShellDemo() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 style={{ fontSize: 21, fontWeight: 700, color: '#fff', fontFamily: "'Saira Expanded', sans-serif", margin: 0, lineHeight: 1.15, letterSpacing: '-0.2px' }}>Preview interativo</h2>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.67)', fontFamily: "'Open Sans', sans-serif", margin: '4px 0 0', lineHeight: 1.4 }}>Família responsiva com mockups para desktop, tablet e celular</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.67)', fontFamily: "'Open Sans', sans-serif", margin: '4px 0 0', lineHeight: 1.4 }}>Clique em qualquer mockup para copiar o código. Família responsiva para desktop, tablet e celular</p>
           </div>
         </div>
       </div>
 
         <div className="space-y-8">
+          <Copyable label="Shell Desktop" code={shellCode('desktop')} preview={shellPreview('desktop')}>
           <MockupFrame
             viewport="desktop"
             label="Desktop"
@@ -873,13 +1060,15 @@ export default function ApplicationShellDemo() {
               />
             </div>
           </MockupFrame>
+          </Copyable>
 
+          <Copyable label="Shell Tablet" code={shellCode('tablet')} preview={shellPreview('tablet')}>
           <MockupFrame
             viewport="tablet"
             label="Tablet"
             hint="Mockup mais largo, com proporção de tablet real, rail compacta e conteúdo distribuído sem parecer um telefone."
           >
-            <div className="h-[620px]">
+            <div className="h-[720px]">
               <ShellCanvas
                 viewport="tablet"
                 desktopCollapsed={desktopCollapsed}
@@ -891,7 +1080,9 @@ export default function ApplicationShellDemo() {
               />
             </div>
           </MockupFrame>
+          </Copyable>
 
+          <Copyable label="Shell Mobile" code={shellCode('mobile')} preview={shellPreview('mobile')}>
           <MockupFrame
             viewport="mobile"
             label="Celular"
@@ -909,7 +1100,10 @@ export default function ApplicationShellDemo() {
               />
             </div>
           </MockupFrame>
+          </Copyable>
         </div>
+
+        <CodePlayground />
 
         <CodeExportSection items={[
           {
@@ -964,15 +1158,15 @@ export function AppShellLayout({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <header style={{
           height: 48, padding: '0 16px',
-          borderBottom: '1px solid var(--color-border)',
-          background: 'var(--color-surface)',
+          borderBottom: '1px solid #E2E8F0',
+          background: '#FFFFFF',
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           {/* Toggle sidebar + Breadcrumb + Search + Actions */}
         </header>
 
         {/* Section Nav (tabs) */}
-        <div style={{ borderBottom: '1px solid var(--color-border)' }}>
+        <div style={{ borderBottom: '1px solid #E2E8F0' }}>
           {/* DocHeaderSectionNav */}
         </div>
 
@@ -1008,9 +1202,10 @@ export function AppShellLayout({ children }: { children: React.ReactNode }) {
         ]} />
 
         <div style={{ textAlign: 'center', padding: '20px 0 0', borderTop: '1px solid #E2E8F0', marginTop: 20 }}>
-          <span style={{ fontSize: 12, color: '#7B8C96', letterSpacing: '0.5px', fontFamily: "'Saira Expanded', sans-serif", fontWeight: 400 }}>DS-FIPS v0.4.0 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
+          <span style={{ fontSize: 12, color: '#7B8C96', letterSpacing: '0.5px', fontFamily: "'Saira Expanded', sans-serif", fontWeight: 400 }}>DS-FIPS v0.4.2 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
         </div>
       </div>
     </div>
+    </PlaygroundProvider>
   )
 }

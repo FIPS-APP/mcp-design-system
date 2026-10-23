@@ -1,8 +1,14 @@
 // @ts-nocheck
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { Ban, Pencil, Trash2, Filter, Search, X, Activity, Flag, Building2, Globe, User } from 'lucide-react'
+import { ScopeSegment } from '../../../components/composites/ScopeSegment'
 import { CodeExportSection } from '../../components/CodeExport'
+import { CopyableInline } from '../../components/CodePlayground'
 import type { CSSProperties } from 'react'
 import { useFipsTheme } from '../../../hooks/useFipsTheme'
+import { ExportButtons } from '../../../components/composites/ExportButtons'
+import { RowActionsMenu } from '../../../components/composites/RowActionsMenu'
+import { ExportPreviewModal, type ExportIntent } from '../../../components/composites/ExportPreviewModal'
 
 /* ═══════════════════════════════════════════ TOKENS ═══════════════════════════════════════════ */
 const C={azulProfundo:"var(--color-gov-azul-profundo)",azulEscuro:"var(--color-gov-azul-escuro)",azulClaro:"var(--color-gov-azul-claro)",cinzaChumbo:"var(--color-fg-muted)",cinzaEscuro:"var(--color-fg)",cinzaClaro:"#C0CCD2",azulCeu:"#93BDE4",azulCeuClaro:"#D3E3F4",amareloOuro:"#FDC24E",amareloEscuro:"#F6921E",verdeFloresta:"#00C64C",verdeEscuro:"var(--color-gov-verde-escuro)",danger:"#DC3545",branco:"#FFFFFF",bg:"var(--color-surface-muted)",cardBg:"var(--color-surface)",cardBorder:"var(--color-border)",textMuted:"var(--color-fg-muted)",textLight:"var(--color-fg-muted)",gradFrom:"var(--color-gov-gradient-from)",gradTo:"var(--color-gov-gradient-to)"};
@@ -24,6 +30,7 @@ const Ic={
   density:(s=14,c=C.cinzaChumbo)=><svg width={s} height={s} viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 9h14M3 13h14M3 17h14" stroke={c} strokeWidth="1.5" strokeLinecap="round"/></svg>,
   columns:(s=14,c=C.cinzaChumbo)=><svg width={s} height={s} viewBox="0 0 20 20" fill="none"><rect x="2" y="3" width="4" height="14" rx="1" stroke={c} strokeWidth="1.5"/><rect x="8" y="3" width="4" height="14" rx="1" stroke={c} strokeWidth="1.5"/><rect x="14" y="3" width="4" height="14" rx="1" stroke={c} strokeWidth="1.5"/></svg>,
   sortAsc:(s=10,c=C.azulProfundo)=><svg width={s} height={s} viewBox="0 0 16 16" fill="none"><path d="M8 3v10M5 6l3-3 3 3" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  sortDesc:(s=10,c=C.azulProfundo)=><svg width={s} height={s} viewBox="0 0 16 16" fill="none"><path d="M8 13V3M5 10l3 3 3-3" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   sortNone:(s=10,c=C.cinzaClaro)=><svg width={s} height={s} viewBox="0 0 16 16" fill="none"><path d="M5 6l3-3 3 3M5 10l3 3 3-3" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   x:(s=12,c=C.cinzaChumbo)=><svg width={s} height={s} viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke={c} strokeWidth="1.8" strokeLinecap="round"/></svg>,
   arrowUp:(s=10,c=C.verdeFloresta)=><svg width={s} height={s} viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -51,12 +58,81 @@ function Checkbox({checked,onChange,size=16}){return(<div onClick={onChange} sty
 
 function Toggle({checked,onChange}){return(<div onClick={onChange} style={{width:30,height:18,borderRadius:9,background:checked?C.azulProfundo:C.cardBorder,position:"relative",cursor:"pointer",transition:"all .15s",flexShrink:0}}><div style={{position:"absolute",top:2,left:checked?14:2,width:14,height:14,borderRadius:"50%",background:C.branco,boxShadow:"0 1px 3px rgba(0,0,0,.15)",transition:"all .15s"}}/></div>)}
 
+/* Rótulo ícone+texto do grupo de filtro — mesmo padrão de FilterLabel/PillGroup do QLP/Governança BI. */
+function FilterLabel({icon:Icon,children}){return(<p style={{display:"flex",alignItems:"center",gap:6,marginBottom:6,marginLeft:7,fontSize:11,fontWeight:600,color:C.cinzaEscuro,fontFamily:Fn.body}}><Icon size={12} style={{flexShrink:0,color:C.cinzaChumbo}}/>{children}</p>)}
+
+/* Filtro segmentado single-select — mesmo padrão do PillFilter do QLP/Governança BI:
+   "Todos" + 1 pill por opção; ativo = fundo cheio da cor + texto branco; inativo
+   com cor = dot colorido (escaneável de relance); sem cor (Todos) = azul primário. */
+function PillFilter({options,value,onChange}){
+  return(
+    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+      {[{value:"",label:"Todos"},...options].map(o=>{
+        const active=o.value===value;
+        return(
+          <button key={o.value||"todos"} type="button" onClick={()=>onChange(o.value)} aria-pressed={active} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",fontSize:11,fontWeight:600,fontFamily:Fn.body,borderRadius:999,cursor:"pointer",transition:"all .1s",border:active?"1px solid transparent":`1px solid ${C.cardBorder}`,background:active?(o.color||PILL_PRIMARY):C.cardBg,color:active?C.branco:C.cinzaChumbo,boxShadow:active?"0 1px 2px rgba(0,0,0,.08)":"none"}}>
+            {o.color&&!active&&<span style={{width:6,height:6,borderRadius:"50%",background:o.color,flexShrink:0}}/>}
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Chip de filtro — dropdown fechado "Rótulo: Valor" com radio. Mesmo padrão do
+   ChipSelect do QLP/Governança BI: usar em campos de muitas opções dentro do
+   drawer de filtros; formulário usa <Select>. */
+function ChipSelect({icon:Icon,label,options,value,onChange}){
+  const [open,setOpen]=useState(false);
+  const ref=useRef(null);
+  useEffect(()=>{
+    if(!open)return;
+    const h=e=>{if(ref.current&&!ref.current.contains(e.target))setOpen(false)};
+    document.addEventListener("mousedown",h);
+    return()=>document.removeEventListener("mousedown",h);
+  },[open]);
+  const display=options.find(o=>o.value===value)?.label||"Todos";
+  return(
+    <div ref={ref} style={{position:"relative"}}>
+      <button type="button" onClick={()=>setOpen(v=>!v)} style={{display:"flex",width:"100%",alignItems:"center",gap:6,padding:"7px 12px",fontSize:11,fontWeight:600,color:C.cinzaEscuro,background:C.cardBg,border:`1px solid ${open?C.azulProfundo:C.cardBorder}`,borderRadius:8,cursor:"pointer",fontFamily:Fn.body,boxShadow:open?`0 0 0 2px ${C.azulProfundo}1F`:"none",transition:"all .15s"}}>
+        {Icon&&<Icon size={14} style={{flexShrink:0,opacity:.6}}/>}
+        <span style={{color:C.cinzaChumbo,flexShrink:0}}>{label}:</span>
+        <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left",fontWeight:700,color:C.cinzaEscuro}}>{display}</span>
+        <span style={{display:"flex",flexShrink:0,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}>{Ic.chev(10,C.cinzaChumbo)}</span>
+      </button>
+      {open&&(
+        <div role="listbox" style={{position:"absolute",left:0,top:"calc(100% + 6px)",zIndex:50,minWidth:"100%",maxHeight:280,overflowY:"auto",background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"8px 8px 8px 14px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",padding:"6px 0"}}>
+          {[{value:"",label:"Todos"},...options].map(o=>{
+            const active=o.value===value;
+            return(
+              <div key={o.value||"todos"} role="option" aria-selected={active} onClick={()=>{onChange(o.value);setOpen(false)}} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",fontSize:11,fontWeight:active?700:500,color:active?C.azulProfundo:C.cinzaEscuro,cursor:"pointer",background:active?`${C.azulProfundo}10`:"transparent",transition:"background .12s"}} onMouseEnter={e=>{if(!active)e.currentTarget.style.background=C.bg}} onMouseLeave={e=>{if(!active)e.currentTarget.style.background="transparent"}}>
+                <span style={{display:"flex",flexShrink:0,alignItems:"center",justifyContent:"center",width:14,height:14,borderRadius:"50%",border:`1.5px solid ${active?C.azulProfundo:C.cardBorder}`}}>{active&&<span style={{width:6,height:6,borderRadius:"50%",background:C.azulProfundo}}/>}</span>
+                <span style={{flex:1}}>{o.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const STATUSES=["Aprovada","Pendente","Em análise","Recusada"];
 const DEPTS=["SSMA","Operações","TI","Suprimentos","Manutenção","Financeiro"];
 const PRIO=["Crítica","Alta","Média","Baixa"];
 const NAMES=["Mariana Souza","Carlos Pereira","Amanda Silva","João Mendes","Patricia Costa","Rafael Lima","Beatriz Santos","Eduardo Almeida","Fernanda Castro","Lucas Oliveira"];
 const STATUS_COLOR={"Aprovada":"sucesso","Pendente":"atencao","Em análise":"info","Recusada":"critico"};
 const PRIO_COLOR={"Crítica":C.danger,"Alta":C.amareloEscuro,"Média":C.azulClaro,"Baixa":C.cinzaChumbo};
+/* Cores fixas (não theme-aware) para o fundo cheio dos PillFilter — o pill ativo
+   é sempre texto branco sobre a cor, então usa o tom saturado dos badges em vez
+   do token light/dark (que em muitos casos clareia no dark e perde contraste). */
+const STATUS_PILL_COLOR={"Aprovada":"#00A83E","Pendente":"#F6921E","Em análise":"#002A68","Recusada":"#DC3545"};
+const PRIO_PILL_COLOR={"Crítica":"#DC3545","Alta":"#F6921E","Média":"#0090D0","Baixa":"#6B7784"};
+/* Cor fixa do pill "Todos" (sem cor semântica própria) — não usa C.azulProfundo
+   porque esse token É theme-aware (var(--color-gov-azul-profundo)) e clareia pra
+   #93BDE4 no dark, o que quebraria o texto branco por cima. */
+const PILL_PRIMARY="#0057B8";
 
 function seed(n){
   let r=137;const rnd=()=>{r=(r*9301+49297)%233280;return r/233280;};
@@ -90,14 +166,171 @@ const DENSITY={
   comfortable:{rowH:56,fs:13,padX:20},
 };
 
+/* Quantos chips de filtro ativo cabem no header da tabela antes de virar "+N". */
+const MAX_FILTER_CHIPS=4;
+
+/* ── Helper: código copy-paste-ready para o Playground ── */
+function dlCode(part: string) {
+  if (part === 'header') return `// DS-FIPS — Data Listing Header Navy — Copy-paste ready
+
+export function DataListingHeader() {
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #002A68 0%, #004B9B 60%, #001A4A 100%)',
+      borderRadius: '12px 12px 12px 24px', padding: '22px 26px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      color: '#fff', boxShadow: '0 4px 20px rgba(0,42,104,0.12)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 11, background: 'rgba(253,194,78,0.18)', border: '1px solid rgba(253,194,78,0.30)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDC24E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div>
+          <h2 style={{ fontFamily: "'Saira Expanded',sans-serif", fontSize: 21, fontWeight: 700, margin: 0 }}>Sistema de Requisicoes</h2>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.67)', margin: '4px 0 0' }}>Gestao de compras e requisicoes do modulo Suprimentos</p>
+        </div>
+      </div>
+      <button style={{ background: '#F6921E', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>+ Nova Solicitacao</button>
+    </div>
+  );
+}`
+
+  if (part === 'kpi') return `// DS-FIPS — Data Listing KPI Cards — Copy-paste ready
+
+export function DataListingKPIs() {
+  const kpis = [
+    { label: 'Total registros', value: '60', color: '#004B9B' },
+    { label: 'Pendentes', value: '15', color: '#F6921E' },
+    { label: 'Aprovadas', value: '18', color: '#00C64C' },
+    { label: 'Volume total', value: 'R$ 482k', color: '#00904C' },
+  ];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+      {kpis.map(kpi => (
+        <div key={kpi.label} style={{
+          background: '#fff', border: '1px solid #E2E8F0',
+          borderRadius: '10px 10px 10px 18px', overflow: 'hidden',
+        }}>
+          <div style={{ padding: '16px 18px 12px' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#7B8C96' }}>{kpi.label}</span>
+            <p style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Saira Expanded',sans-serif", color: '#333B41', marginTop: 6, margin: '6px 0 0' }}>{kpi.value}</p>
+          </div>
+          <div style={{ height: 32, padding: '0 18px 8px' }}>
+            <svg viewBox="0 0 120 24" style={{ width: '100%', height: '100%' }}>
+              <path d="M0 20 L20 14 L40 16 L60 8 L80 12 L100 6 L120 10 L120 24 L0 24Z" fill={kpi.color} fillOpacity="0.12" />
+              <path d="M0 20 L20 14 L40 16 L60 8 L80 12 L100 6 L120 10" fill="none" stroke={kpi.color} strokeWidth="1.5" />
+            </svg>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}`
+
+  return `// DS-FIPS — Data Listing Table — Copy-paste ready
+
+export function DataListingTable() {
+  const rows = [
+    { id: 'RC-001', solicitante: 'Ana Silva', status: 'Aprovada', statusColor: '#00C64C', prioridade: 'Alta', prioridadeColor: '#F6921E', valor: 'R$ 12.500' },
+    { id: 'RC-002', solicitante: 'Carlos Lima', status: 'Pendente', statusColor: '#F6921E', prioridade: 'Media', prioridadeColor: '#004B9B', valor: 'R$ 8.200' },
+    { id: 'RC-003', solicitante: 'Julia Santos', status: 'Em analise', statusColor: '#004B9B', prioridade: 'Baixa', prioridadeColor: '#7B8C96', valor: 'R$ 3.400' },
+  ];
+
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #E2E8F0',
+      borderRadius: '10px 10px 10px 18px', overflow: 'hidden',
+    }}>
+      <div style={{ padding: '12px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input type="text" placeholder="Buscar..." style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12, outline: 'none', width: 180 }} />
+          <button style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333B41', cursor: 'pointer' }}>Filtros</button>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333B41', cursor: 'pointer' }}>Excel</button>
+          <button style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333B41', cursor: 'pointer' }}>PDF</button>
+        </div>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ background: 'var(--color-surface-muted)' }}>
+            <th style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-fg)', textAlign: 'center' }}>Codigo</th>
+            <th style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-fg)', textAlign: 'center' }}>Solicitante</th>
+            <th style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-fg)', textAlign: 'center' }}>Status</th>
+            <th style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-fg)', textAlign: 'center' }}>Prioridade</th>
+            <th style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-fg)', textAlign: 'center' }}>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={row.id} style={{ background: i % 2 === 1 ? '#D3E3F440' : '#fff' }}>
+              <td style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#004B9B' }}>{row.id}</td>
+              <td style={{ padding: '8px 16px', fontSize: 13, color: '#333B41' }}>{row.solicitante}</td>
+              <td style={{ padding: '8px 16px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, color: row.statusColor, background: row.statusColor + '15' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: row.statusColor }} />
+                  {row.status}
+                </span>
+              </td>
+              <td style={{ padding: '8px 16px' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: row.prioridadeColor }}>{row.prioridade}</span>
+              </td>
+              <td style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#333B41', textAlign: 'right' }}>{row.valor}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}`
+}
+
+function dlPreview(part: string) {
+  const labels = { header: 'Header Navy + CTA', kpi: 'KPI Cards + Sparkline', toolbar: 'Toolbar + Table' }
+  return (
+    <div style={{ padding: 12, textAlign: 'center' }}>
+      <div style={{ background: 'linear-gradient(135deg, #002A68, #004B9B)', borderRadius: 8, padding: '14px 12px', color: '#fff', fontSize: 11, fontFamily: "'Saira Expanded', sans-serif" }}>
+        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, color: '#FDC24E', marginBottom: 4 }}>Data Listing</div>
+        <strong>{labels[part] || part}</strong>
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════════════════════════════════ MAIN ═══════════════════════════════════════════ */
+// Fora do render: componente criado a cada render perde estado e quebra reconciliação.
+// `mob` era closure sobre a largura da janela — agora entra como prop.
+function Section({id,n,title,desc,children,mob}:{id?:string,n:string,title:string,desc?:string,children:React.ReactNode,mob:boolean}){
+  return(
+  <div id={id} style={{marginBottom:mob?32:48,scrollMarginTop:96}}>
+    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
+      <span style={{fontSize:11,fontWeight:700,color:C.amareloOuro,fontFamily:Fn.mono,letterSpacing:"1.5px"}}>{n}</span>
+      <h2 style={{fontSize:mob?17:20,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title,margin:0,letterSpacing:"-0.3px"}}>{title}</h2>
+    </div>
+    {desc&&<p style={{fontSize:13,color:C.cinzaChumbo,margin:"0 0 18px 32px",lineHeight:1.55,fontFamily:Fn.body,maxWidth:760}}>{desc}</p>}
+    {children}
+  </div>
+  );
+}
+
 export default function DataListingDemo() {
   const {dark}=useFipsTheme();
   const accentBg=dark?"rgba(147,189,228,0.12)":"#D3E3F4";
-  const accentRing=dark?"rgba(147,189,228,0.2)":"#D3E3F4";
   const zebraBg=dark?"rgba(255,255,255,0.03)":"#D3E3F440";
   const [w,setW]=useState(typeof window!=="undefined"?window.innerWidth:1200);
   useEffect(()=>{const h=()=>setW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
+  useEffect(()=>{
+    if(typeof window==="undefined")return;
+    const scrollToHash=()=>{
+      const id=window.location.hash.replace(/^#/,"");
+      if(!id)return;
+      requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}));
+    };
+    scrollToHash();
+    window.addEventListener("hashchange",scrollToHash);
+    return()=>window.removeEventListener("hashchange",scrollToHash);
+  },[]);
   const mob=w<768;
 
   const [view,setView]=useState("table");
@@ -111,41 +344,66 @@ export default function DataListingDemo() {
   const [showCustom,setShowCustom]=useState(false);
   const [customStart,setCustomStart]=useState("");
   const [customEnd,setCustomEnd]=useState("");
-  const [filters,setFilters]=useState({status:[],dept:[],priority:[]});
+  // '' = "Todos" (sem filtro) — mesma convenção do PillFilter/ChipSelect do QLP/Governança BI: single-select por grupo, não multi.
+  const [filters,setFilters]=useState({status:"",dept:"",priority:""});
   const [search,setSearch]=useState("");
-  const [searchFocused,setSearchFocused]=useState(false);
+  const [exportOpen,setExportOpen]=useState(false);
+  const [exportIntent,setExportIntent]=useState<ExportIntent>("excel");
   const [configTab,setConfigTab]=useState("colunas");
   const [density,setDensity]=useState("normal");
   const [visibleCols,setVisibleCols]=useState(new Set(ALL_COLUMNS.filter(c=>c.default).map(c=>c.id)));
   const [appearance,setAppearance]=useState({zebra:true,verticalBorders:false,stickyHeader:true,wrapText:false});
+  const [sortableS,setSortableS]=useState(true);
   const [sortBy,setSortBy]=useState({col:null,dir:"asc"});
 
   const allData=useMemo(()=>seed(60),[]);
   const data=useMemo(()=>{
     let r=allData;
     if(search)r=r.filter(x=>x.id.toLowerCase().includes(search.toLowerCase())||x.sol.toLowerCase().includes(search.toLowerCase()));
-    if(filters.status.length)r=r.filter(x=>filters.status.includes(x.status));
-    if(filters.dept.length)r=r.filter(x=>filters.dept.includes(x.dept));
-    if(filters.priority.length)r=r.filter(x=>filters.priority.includes(x.priority));
+    if(filters.status)r=r.filter(x=>x.status===filters.status);
+    if(filters.dept)r=r.filter(x=>x.dept===filters.dept);
+    if(filters.priority)r=r.filter(x=>x.priority===filters.priority);
+    if(sortBy.col){
+      r=[...r].sort((a,b)=>{
+        const av=a[sortBy.col],bv=b[sortBy.col];
+        if(typeof av==="number"&&typeof bv==="number")return sortBy.dir==="asc"?av-bv:bv-av;
+        const as=String(av??"").toLowerCase(),bs=String(bv??"").toLowerCase();
+        return sortBy.dir==="asc"?as.localeCompare(bs):bs.localeCompare(as);
+      });
+    }
     return r.slice(0,10);
-  },[allData,search,filters]);
+  },[allData,search,filters,sortBy]);
   const D=DENSITY[density];
 
-  const totalFilters=filters.status.length+filters.dept.length+filters.priority.length;
-  const toggleFilter=(group,val)=>setFilters(f=>{const a=f[group]||[];return{...f,[group]:a.includes(val)?a.filter(v=>v!==val):[...a,val]}});
-  const clearFilters=()=>setFilters({status:[],dept:[],priority:[]});
+  const totalFilters=[filters.status,filters.dept,filters.priority].filter(Boolean).length;
+  const clearFilters=()=>setFilters({status:"",dept:"",priority:""});
+
+  /* Chips de filtros ativos — um chip por VALOR filtrado, nunca só a contagem.
+     Regra DS: o usuário tem que ler o QUE está filtrando sem reabrir o Drawer,
+     e conseguir remover um valor de cada vez (X no próprio chip). Acima de
+     MAX_FILTER_CHIPS o excedente vira "+N" que reabre o Drawer, e um "Limpar"
+     textual aparece a partir de 2 chips. */
+  const activeFilterChips=useMemo(()=>
+    (["status","dept","priority"] as const)
+      .filter(k=>filters[k])
+      .map(k=>({key:k,label:filters[k],remove:()=>setFilters(p=>({...p,[k]:""}))})),
+  [filters]);
 
   const [hovKpi,setHovKpi]=useState(null); // {c:cardIdx, p:pointIdx}
+  const [listingScope,setListingScope]=useState<'minha'|'todos'>('todos');
+  const countMinhaArea=useMemo(()=>allData.filter((_,i)=>i%6===0).length,[allData]);
 
   const filterRef=useRef(null);
   const configRef=useRef(null);
   const periodoRef=useRef(null);
   const configDemoRef=useRef(null);
+  // Filtros abrem em Drawer (padrão QLP `ListingToolbar`), não em popover ancorado:
+  // fechar é overlay/X/Esc — não click-outside.
   useEffect(()=>{
     if(!showFilters)return;
-    const h=e=>{if(filterRef.current&&!filterRef.current.contains(e.target))setShowFilters(false)};
-    document.addEventListener("mousedown",h);
-    return()=>document.removeEventListener("mousedown",h);
+    const h=e=>{if(e.key==="Escape")setShowFilters(false)};
+    document.addEventListener("keydown",h);
+    return()=>document.removeEventListener("keydown",h);
   },[showFilters]);
   useEffect(()=>{
     if(!showConfig)return;
@@ -166,30 +424,20 @@ export default function DataListingDemo() {
     return()=>document.removeEventListener("mousedown",h);
   },[showConfigDemo]);
 
-  const toggleSel=id=>{const n=new Set(selected);n.has(id)?n.delete(id):n.add(id);setSelected(n)};
+  const toggleSel=id=>{const n=new Set(selected);if(n.has(id))n.delete(id);else n.add(id);setSelected(n)};
   const toggleAll=()=>{if(selected.size===data.length)setSelected(new Set());else setSelected(new Set(data.map(r=>r.id)))};
-  const toggleCol=id=>{const c=ALL_COLUMNS.find(x=>x.id===id);if(c?.fixed)return;const n=new Set(visibleCols);n.has(id)?n.delete(id):n.add(id);setVisibleCols(n)};
+  const toggleCol=id=>{const c=ALL_COLUMNS.find(x=>x.id===id);if(c?.fixed)return;const n=new Set(visibleCols);if(n.has(id))n.delete(id);else n.add(id);setVisibleCols(n)};
   const restoreCols=()=>setVisibleCols(new Set(ALL_COLUMNS.filter(c=>c.default).map(c=>c.id)));
 
   const visibleColumnList=ALL_COLUMNS.filter(c=>visibleCols.has(c.id));
 
-  const Section=({n,title,desc,children})=>(
-    <div style={{marginBottom:mob?32:48}}>
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
-        <span style={{fontSize:11,fontWeight:700,color:C.amareloOuro,fontFamily:Fn.mono,letterSpacing:"1.5px"}}>{n}</span>
-        <h2 style={{fontSize:mob?17:20,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title,margin:0,letterSpacing:"-0.3px"}}>{title}</h2>
-      </div>
-      {desc&&<p style={{fontSize:13,color:C.cinzaChumbo,margin:"0 0 18px 32px",lineHeight:1.55,fontFamily:Fn.body,maxWidth:760}}>{desc}</p>}
-      {children}
-    </div>
-  );
-
   return(
     <div style={{minHeight:"100vh",background:"var(--color-surface-muted)",fontFamily:Fn.body,color:C.cinzaEscuro}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Saira+Expanded:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
-        @keyframes popIn{from{opacity:0;transform:scale(.95) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
         @keyframes dsShimmer{0%{left:-100%}100%{left:150%}}
+        @keyframes dlFade{from{opacity:0}to{opacity:1}}
+        @keyframes dlSlideLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
         .ds-btn-wrap{position:relative;overflow:hidden;display:inline-flex;border-radius:6px}
         .ds-btn-wrap::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,0) 30%,rgba(255,255,255,0.35) 50%,rgba(255,255,255,0) 70%,transparent 80%);pointer-events:none;transition:none}
         .ds-btn-wrap:hover::after{animation:dsShimmer 0.65s ease-out forwards}
@@ -200,16 +448,17 @@ export default function DataListingDemo() {
         <div style={{position:"relative"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:6,background:`${C.branco}10`,border:`1px solid ${C.branco}18`,borderRadius:20,padding:"5px 14px",fontSize:11,fontWeight:600,letterSpacing:"1.5px",textTransform:"uppercase",color:C.amareloOuro,fontFamily:Fn.title,marginBottom:16}}>{Ic.grid(14,C.amareloOuro)} Design System FIPS</div>
           <h1 style={{fontSize:mob?30:44,fontWeight:700,color:C.branco,margin:"0 0 10px",fontFamily:Fn.title}}>Data Listing</h1>
-          <p style={{fontSize:16,color:`${C.branco}B0`,lineHeight:1.6,maxWidth:700,margin:0,fontFamily:Fn.body}}>Padrão completo para painéis de relatórios e ações: Header → KPIs → Toolbar → Table. Sequência fixa e elementos documentados para listagem de dados administrativos.</p>
+          <p style={{fontSize:16,color:`${C.branco}B0`,lineHeight:1.6,maxWidth:700,margin:0,fontFamily:Fn.body}}>Padrão completo para painéis de relatórios e ações: Header, KPIs, Toolbar, Table. Clique em qualquer seção para copiar o código.</p>
         </div>
       </header>
 
       <div style={{padding:mob?"20px 12px 40px":"32px 40px 60px",maxWidth:1200,margin:"0 auto"}}>
 
         {/* ═══ 01 — Data listing completo ═══ */}
-        <Section n="01" title="Painel de Relatório completo" desc="Padrão completo de Painel de Relatório seguindo a ordem obrigatória: Header → KPIs → Toolbar → Table. Use esse padrão sempre que precisar exibir dados administrativos com ações principais, métricas e listagem.">
+        <Section mob={mob} n="01" title="Painel de Relatório completo" desc="Padrão completo de Painel de Relatório seguindo a ordem obrigatória: Header → KPIs → Toolbar → Table. Use esse padrão sempre que precisar exibir dados administrativos com ações principais, métricas e listagem.">
 
           {/* HEADER DO PAINEL — navy com ícone + título/subtítulo + CTA */}
+          <CopyableInline label="Header Navy" code={dlCode('header')} preview={dlPreview('header')}>
           <div style={{background:dark?`linear-gradient(135deg,#1e2a3a 0%,#162030 50%,#1a2840 100%)`:`linear-gradient(135deg,${C.gradFrom} 0%,${C.gradTo} 60%,#001A4A 100%)`,borderRadius:"12px 12px 12px 24px",padding:mob?"18px 18px":"22px 26px",position:"relative",overflow:"hidden",marginBottom:mob?12:16,boxShadow:dark?"0 4px 20px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04)":"0 4px 20px rgba(0,42,104,.12)",border:dark?"1px solid rgba(147,189,228,0.08)":"none"}}>
             <JunctionLines style={{position:"absolute",top:-10,right:-20,width:mob?180:360,height:200,opacity:dark?.04:.06}}/>
             <div style={{position:"relative",display:"flex",alignItems:"center",gap:mob?12:16,flexWrap:"wrap"}}>
@@ -225,8 +474,10 @@ export default function DataListingDemo() {
               </span>
             </div>
           </div>
+          </CopyableInline>
 
-          {/* KPIs com sparkline area chart */}
+          {/* KPIs sparkline — variante alternativa (fora do card da toolbar) */}
+          <CopyableInline label="KPI Cards (sparkline — variante)" code={dlCode('kpi')} preview={dlPreview('kpi')}>
           {(()=>{
             const total=allData.length;
             const pendentes=allData.filter(r=>r.status==="Pendente").length;
@@ -293,55 +544,45 @@ export default function DataListingDemo() {
               </div>
             );
           })()}
-          {/* TOOLBAR SEPARADA — card próprio acima do Table */}
+          </CopyableInline>
+          {/* TOOLBAR SEPARADA — card próprio: filtros/busca à esquerda, export à direita */}
+          <CopyableInline label="Toolbar + Table" code={dlCode('toolbar')} preview={dlPreview('toolbar')}>
           <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,overflow:"visible",boxShadow:"0 1px 3px rgba(0,75,155,.04)",marginBottom:14}}>
             <div style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-              {/* Filtros */}
-              <div ref={filterRef} style={{position:"relative"}}>
-                <button onClick={()=>setShowFilters(!showFilters)} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"7px 12px",fontSize:11,fontWeight:600,color:totalFilters>0?C.azulProfundo:C.cinzaEscuro,background:totalFilters>0?accentBg:C.cardBg,border:`1px solid ${totalFilters>0?C.azulProfundo:C.cardBorder}`,borderRadius:8,cursor:"pointer",fontFamily:Fn.body,transition:"all .15s"}}>{Ic.filter(13,totalFilters>0?C.azulProfundo:C.cinzaChumbo)} Filtros{totalFilters>0&&<span style={{fontSize:9,fontFamily:Fn.mono,padding:"1px 5px",background:C.azulProfundo,color:C.branco,borderRadius:8}}>{totalFilters}</span>}</button>
-                {showFilters&&<div style={{position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:50,width:280,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"10px 10px 10px 16px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden"}}>
-                  <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.cardBorder}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontSize:13,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>Filtros</span>
-                    {totalFilters>0&&<button onClick={clearFilters} style={{fontSize:10,fontWeight:600,color:C.danger,background:"transparent",border:"none",cursor:"pointer",fontFamily:Fn.body}}>Limpar tudo</button>}
-                  </div>
-                  <div style={{padding:"12px 16px",maxHeight:340,overflowY:"auto"}}>
-                    <span style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,display:"block",marginBottom:6}}>Status</span>
-                    <div style={{display:"flex",flexDirection:"column",gap:2,marginBottom:14}}>
-                      {STATUSES.map(s=>(
-                        <div key={s} onClick={()=>toggleFilter("status",s)} style={{padding:"6px 8px",fontSize:11,color:C.cinzaEscuro,cursor:"pointer",borderRadius:5,display:"flex",alignItems:"center",gap:8}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                          <div style={{width:14,height:14,borderRadius:3,border:`1.5px solid ${filters.status.includes(s)?C.azulProfundo:C.cardBorder}`,background:filters.status.includes(s)?C.azulProfundo:C.branco,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{filters.status.includes(s)&&Ic.check(10)}</div>
-                          <Badge variant={STATUS_COLOR[s]} dot dark={dark}>{s}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                    <span style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,display:"block",marginBottom:6}}>Departamento</span>
-                    <div style={{display:"flex",flexDirection:"column",gap:2,marginBottom:14}}>
-                      {DEPTS.map(d=>(
-                        <div key={d} onClick={()=>toggleFilter("dept",d)} style={{padding:"6px 8px",fontSize:11,color:C.cinzaEscuro,cursor:"pointer",borderRadius:5,display:"flex",alignItems:"center",gap:8}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                          <div style={{width:14,height:14,borderRadius:3,border:`1.5px solid ${filters.dept.includes(d)?C.azulProfundo:C.cardBorder}`,background:filters.dept.includes(d)?C.azulProfundo:C.branco,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{filters.dept.includes(d)&&Ic.check(10)}</div>
-                          <span>{d}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <span style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,display:"block",marginBottom:6}}>Prioridade</span>
-                    <div style={{display:"flex",flexDirection:"column",gap:2}}>
-                      {PRIO.map(p=>(
-                        <div key={p} onClick={()=>toggleFilter("priority",p)} style={{padding:"6px 8px",fontSize:11,color:C.cinzaEscuro,cursor:"pointer",borderRadius:5,display:"flex",alignItems:"center",gap:8}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                          <div style={{width:14,height:14,borderRadius:3,border:`1.5px solid ${filters.priority.includes(p)?C.azulProfundo:C.cardBorder}`,background:filters.priority.includes(p)?C.azulProfundo:C.branco,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{filters.priority.includes(p)&&Ic.check(10)}</div>
-                          <span style={{display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:7,height:7,borderRadius:"50%",background:PRIO_COLOR[p]}}/>{p}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>}
-              </div>
-              <div onClick={e=>e.currentTarget.querySelector("input")?.focus()} style={{display:"flex",alignItems:"center",gap:8,height:35,padding:"0 12px",background:"var(--color-surface)",border:`1.5px solid ${searchFocused?C.azulProfundo:"var(--color-border)"}`,borderRadius:8,boxShadow:searchFocused?`0 0 0 3px ${accentRing}`:"none",transition:"all 0.18s ease",cursor:"text",flex:1,minWidth:200,maxWidth:320}}>
-                <span style={{display:"flex",flexShrink:0,opacity:.7}}>{Ic.search(15)}</span>
-                <input value={search} onChange={e=>setSearch(e.target.value)} onFocus={()=>setSearchFocused(true)} onBlur={()=>setSearchFocused(false)} placeholder="Buscar requisições..." style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:Fn.body,fontSize:13,color:C.cinzaEscuro,minWidth:0}}/>
-                {search&&<span onClick={e=>{e.stopPropagation();setSearch("")}} style={{display:"flex",cursor:"pointer",opacity:.5,flexShrink:0}}>{Ic.x(14,C.cinzaChumbo)}</span>}
+              {/* Filtros — botão Button variant="outline" size="sm" do QLP (ListingToolbar.tsx):
+                  sempre com borda/texto var(--color-primary), não condicional ao estado ativo.
+                  --color-primary não muda no dark mode neste projeto, por isso o par manual #93BDE4. */}
+              <button
+                ref={filterRef}
+                onClick={()=>setShowFilters(true)}
+                style={{display:"inline-flex",alignItems:"center",justifyContent:"center",gap:7,height:30,padding:"0 14px",fontSize:12,fontWeight:600,letterSpacing:"0.01em",whiteSpace:"nowrap",color:dark?"#93BDE4":C.azulProfundo,background:"transparent",border:`1.5px solid ${dark?"#93BDE4":C.azulProfundo}`,borderRadius:6,cursor:"pointer",fontFamily:Fn.body,transition:"all .15s",flexShrink:0}}
+                onMouseEnter={e=>e.currentTarget.style.background=accentBg}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+              >
+                <Filter size={14}/> Filtros
+                {totalFilters>0&&<span style={{marginLeft:2,height:16,minWidth:16,padding:"0 4px",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,fontFamily:Fn.body,background:dark?"#93BDE4":C.azulProfundo,color:dark?"#002A68":C.branco,borderRadius:999}}>{totalFilters}</span>}
+              </button>
+
+              {/* Alçada — logo após Filtros (Gestão OPA /dashboard) */}
+              <ScopeSegment
+                value={listingScope}
+                onChange={setListingScope}
+                label="Alçada"
+                items={[
+                  { key: 'minha', label: 'Minha Área', Icon: User, count: countMinhaArea },
+                  { key: 'todos', label: 'Toda jurisdição', Icon: Globe, count: allData.length },
+                ]}
+              />
+
+              {/* Buscar — mesma anatomia do campo do QLP (ListingToolbar.tsx): flex-1 sem
+                  min/maxWidth, borda estática (sem realce de foco), h-34, ícones lucide 14px. */}
+              <div onClick={e=>e.currentTarget.querySelector("input")?.focus()} style={{display:"flex",alignItems:"center",gap:8,height:34,padding:"0 12px",background:"var(--color-surface)",border:`1px solid ${C.cardBorder}`,borderRadius:8,cursor:"text",flex:"1 1 12rem",minWidth:0,width:"100%"}}>
+                <Search size={14} style={{flexShrink:0,color:C.cinzaChumbo}}/>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar OPAs por código, resumo…" style={{flex:1,border:"none",outline:"none",background:"transparent",fontFamily:Fn.body,fontSize:14,color:C.cinzaEscuro,minWidth:0}}/>
+                {search&&<X size={14} onClick={e=>{e.stopPropagation();setSearch("")}} style={{flexShrink:0,cursor:"pointer",opacity:.5,color:C.cinzaChumbo}}/>}
               </div>
               {/* Período (single-select dropdown) */}
-              <div ref={periodoRef} style={{position:"relative"}}>
+              <div ref={periodoRef} style={{position:"relative",marginLeft:"auto"}}>
                 <button onClick={()=>setShowPeriodo(!showPeriodo)} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",fontSize:11,fontWeight:600,color:C.cinzaEscuro,background:C.cardBg,border:`1px solid ${showPeriodo?C.azulProfundo:C.cardBorder}`,borderRadius:8,cursor:"pointer",fontFamily:Fn.body,transition:"all .15s"}}>{Ic.calendar(13)}<span style={{color:C.cinzaChumbo}}>Período:</span><span style={{color:C.cinzaEscuro,fontWeight:700}}>{periodo}</span>{Ic.chev(10,showPeriodo?C.azulProfundo:C.cinzaChumbo)}</button>
                 {showPeriodo&&<div style={{position:"absolute",top:"calc(100% + 6px)",left:0,zIndex:50,minWidth:240,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"8px 8px 8px 14px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden",padding:"6px 0"}}>
                   {["Hoje","Últimos 7 dias","Últimos 30 dias","Últimos 90 dias","Este ano","Todos"].map(opt=>{
@@ -394,14 +635,91 @@ export default function DataListingDemo() {
                 </div>}
               </div>
 
-              <div style={{flex:1}}/>
+              <div style={{flex:1,minWidth:8}}/>
 
-              {/* Exportar Excel */}
-              <button title="Exportar para Excel" style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:34,height:34,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:8,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.background="#1D6F4208";e.currentTarget.style.borderColor="#1D6F4240"}} onMouseLeave={e=>{e.currentTarget.style.background=C.cardBg;e.currentTarget.style.borderColor=C.cardBorder}}>{Ic.excel(16)}</button>
-              {/* Exportar PDF */}
-              <button title="Exportar para PDF" style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:34,height:34,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:8,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.background=`${C.danger}08`;e.currentTarget.style.borderColor=`${C.danger}40`}} onMouseLeave={e=>{e.currentTarget.style.background=C.cardBg;e.currentTarget.style.borderColor=C.cardBorder}}>{Ic.pdf(16)}</button>
+              <ExportButtons
+                onExcel={()=>{setExportIntent("excel");setExportOpen(true)}}
+                onPdf={()=>{setExportIntent("pdf");setExportOpen(true)}}
+              />
             </div>
           </div>
+
+          {/* DRAWER DE FILTROS — padrão QLP `ListingToolbar`: abre pela ESQUERDA (cobre a sidebar),
+              hero institucional + miolo rolável + rodapé fixo (Limpar tudo / Ver N resultados). */}
+          {showFilters&&(
+            <div style={{position:"fixed",inset:0,zIndex:1000}}>
+              <div onClick={()=>setShowFilters(false)} style={{position:"absolute",inset:0,background:"rgba(0,42,104,.35)",animation:"dlFade .2s ease"}}/>
+              <div role="dialog" aria-modal="true" aria-label="Filtros" style={{position:"fixed",top:0,left:0,width:400,maxWidth:"90vw",height:"100vh",background:C.cardBg,display:"flex",flexDirection:"column",boxShadow:"4px 0 24px rgba(0,0,0,.12)",animation:"dlSlideLeft .3s cubic-bezier(.4,0,.2,1)"}}>
+                {/* Hero */}
+                <div style={{position:"relative",display:"flex",alignItems:"center",gap:14,padding:"20px 56px 20px 24px",overflow:"hidden",flexShrink:0,background:dark?"linear-gradient(135deg,#1e2a3a 0%,#162030 50%,#1a2840 100%)":`linear-gradient(135deg,${C.gradFrom} 0%,${C.gradTo} 60%,#001A4A 100%)`}}>
+                  <JunctionLines style={{position:"absolute",top:-10,right:-20,width:280,height:180,opacity:dark?.04:.06}}/>
+                  <span style={{position:"relative",display:"flex",flexShrink:0,width:44,height:44,borderRadius:11,alignItems:"center",justifyContent:"center",background:`${C.amareloOuro}1A`,border:`1px solid ${C.amareloOuro}30`}}>{Ic.filter(20,C.amareloOuro)}</span>
+                  <div style={{position:"relative",minWidth:0,flex:1}}>
+                    <span style={{display:"block",fontSize:11,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",color:C.amareloOuro,fontFamily:Fn.title}}>Requisições</span>
+                    <h2 style={{margin:0,fontSize:21,fontWeight:700,lineHeight:1.15,letterSpacing:"-.2px",color:C.branco,fontFamily:Fn.title}}>Filtros</h2>
+                    <p style={{margin:"2px 0 0",fontSize:12,lineHeight:1.4,color:"rgba(255,255,255,.65)",fontFamily:Fn.body}}>{totalFilters>0?`${totalFilters} filtro(s) ativo(s)`:"Refine a listagem pelos campos abaixo"}</p>
+                  </div>
+                  <button onClick={()=>setShowFilters(false)} aria-label="Fechar painel" style={{position:"absolute",top:20,right:16,width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.9)",border:"none",transition:"background .15s"}} onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.18)"} onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.08)"}>{Ic.x(16,"currentColor")}</button>
+                </div>
+                {/* Miolo — padrão QLP/Governança BI: pills para classificação (poucas opções,
+                    1 clique, cor escaneável), divisor, chip-dropdown pra muitas opções. */}
+                <div style={{flex:1,overflowY:"auto",padding:"20px 24px",display:"flex",flexDirection:"column",gap:16}}>
+                  <div>
+                    <FilterLabel icon={Activity}>Status</FilterLabel>
+                    <PillFilter
+                      value={filters.status}
+                      onChange={v=>setFilters(f=>({...f,status:v}))}
+                      options={STATUSES.map(s=>({value:s,label:s,color:STATUS_PILL_COLOR[s]}))}
+                    />
+                  </div>
+                  <div>
+                    <FilterLabel icon={Flag}>Prioridade</FilterLabel>
+                    <PillFilter
+                      value={filters.priority}
+                      onChange={v=>setFilters(f=>({...f,priority:v}))}
+                      options={PRIO.map(p=>({value:p,label:p,color:PRIO_PILL_COLOR[p]}))}
+                    />
+                  </div>
+                  <div style={{height:1,background:C.cardBorder}}/>
+                  <ChipSelect
+                    icon={Building2}
+                    label="Departamento"
+                    value={filters.dept}
+                    onChange={v=>setFilters(f=>({...f,dept:v}))}
+                    options={DEPTS.map(d=>({value:d,label:d}))}
+                  />
+                </div>
+                {/* Rodapé fixo */}
+                <div style={{display:"flex",gap:8,flexShrink:0,padding:"16px 24px",borderTop:`1px solid ${C.cardBorder}`,background:C.bg}}>
+                  <button onClick={clearFilters} disabled={totalFilters===0} style={{flex:1,padding:"8px 14px",fontSize:11,fontWeight:600,fontFamily:Fn.body,color:totalFilters===0?C.textLight:C.cinzaEscuro,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:8,cursor:totalFilters===0?"default":"pointer",opacity:totalFilters===0?.6:1,transition:"all .15s"}}>Limpar tudo</button>
+                  <button onClick={()=>setShowFilters(false)} style={{flex:1,padding:"8px 14px",fontSize:11,fontWeight:700,fontFamily:Fn.body,color:C.branco,background:PILL_PRIMARY,border:"none",borderRadius:8,cursor:"pointer",transition:"all .15s"}}>Ver {data.length} resultado(s)</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <ExportPreviewModal
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            intent={exportIntent}
+            filename="requisicoes"
+            columns={[
+              {key:"id",label:"Código"},
+              {key:"sol",label:"Solicitante"},
+              {key:"dept",label:"Departamento"},
+              {key:"status",label:"Status"},
+              {key:"priority",label:"Prioridade"},
+              {key:"sla",label:"SLA"},
+              {key:"valor",label:"Valor",render:(row)=>`R$ ${Number((row as {valor?:number}).valor??0).toLocaleString("pt-BR")}`},
+              {key:"data",label:"Data"},
+            ]}
+            tableColumnKeys={["id","sol","dept","status","priority","valor","data"]}
+            expandedColumnKeys={["id","sol","dept","status","priority","sla","valor","data"]}
+            data={allData as Record<string,unknown>[]}
+            onExportExcel={()=>undefined}
+            onExportPdf={()=>undefined}
+            onPrint={()=>window.print()}
+          />
 
           {/* TABLE CARD com Header obrigatório (ícone + título + subtítulo) */}
           <div style={{background:C.cardBg,borderRadius:"12px 12px 12px 24px",border:`1px solid ${C.cardBorder}`,overflow:"visible",boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
@@ -409,12 +727,41 @@ export default function DataListingDemo() {
             <div style={{padding:"18px 20px 14px",display:"flex",alignItems:"center",gap:14,borderBottom:`1px solid ${C.cardBorder}`}}>
               <div style={{width:48,height:48,borderRadius:14,background:alpha(C.azulProfundo,0.04),border:`1px solid ${alpha(C.azulProfundo,0.08)}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{Ic.inbox(22,C.azulProfundo)}</div>
               <div style={{flex:1,minWidth:0}}>
-                <h3 style={{fontSize:16,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title,margin:0,lineHeight:1.2}}>Requisições</h3>
+                <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:6}}>
+                  <h3 style={{fontSize:16,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title,margin:0,lineHeight:1.2}}>Requisições</h3>
+                  {/* CHIPS DE FILTRO ATIVO — obrigatório em toda listagem com botão Filtros.
+                      Um chip por VALOR (não "3 filtros"): o usuário lê o que está
+                      filtrando sem reabrir o Drawer e remove um a um pelo X.
+
+                      NO APP, use o componente pronto — não copie estes estilos:
+                        import { ActiveFilterChips } from '@fips-app/ds-fips'
+                        <ActiveFilterChips chips={...} onClearAll={...} onOpenFilters={...} />
+                      O inline aqui existe só porque esta página é copy-paste-ready
+                      e não pode depender do pacote. */}
+                  {activeFilterChips.length>0&&<span style={{color:C.cinzaChumbo,fontSize:14}}>·</span>}
+                  {activeFilterChips.slice(0,MAX_FILTER_CHIPS).map(c=>(
+                    <button key={c.key} type="button" onClick={c.remove} title={`Remover filtro: ${c.label}`}
+                      style={{display:"inline-flex",alignItems:"center",gap:4,padding:"2px 4px 2px 8px",fontSize:10,fontWeight:600,fontFamily:Fn.body,color:C.cinzaEscuro,background:C.bg,border:`1px solid ${C.cardBorder}`,borderRadius:4,cursor:"pointer",whiteSpace:"nowrap"}}>
+                      {Ic.filter(10,C.cinzaChumbo)}{c.label}{Ic.x(11)}
+                    </button>
+                  ))}
+                  {activeFilterChips.length>MAX_FILTER_CHIPS&&(
+                    <button type="button" onClick={()=>setShowFilters(true)} title="Ver todos os filtros ativos"
+                      style={{padding:"2px 8px",fontSize:10,fontWeight:600,fontFamily:Fn.body,color:C.cinzaChumbo,background:C.bg,border:`1px solid ${C.cardBorder}`,borderRadius:4,cursor:"pointer",whiteSpace:"nowrap"}}>
+                      +{activeFilterChips.length-MAX_FILTER_CHIPS}
+                    </button>
+                  )}
+                  {activeFilterChips.length>1&&(
+                    <button type="button" onClick={clearFilters} title="Limpar todos os filtros"
+                      style={{fontSize:10,fontWeight:600,fontFamily:Fn.body,color:C.cinzaChumbo,background:"none",border:"none",cursor:"pointer",whiteSpace:"nowrap"}}>
+                      Limpar
+                    </button>
+                  )}
+                </div>
                 <p style={{fontSize:11,color:C.cinzaChumbo,fontFamily:Fn.body,margin:"3px 0 0",lineHeight:1.4}}>{data.length} {data.length===1?"registro":"registros"} {(search||totalFilters>0)?"filtrados":"no total"} · Atualizado agora</p>
               </div>
-              {/* Lado direito do header: filtrado + config */}
+              {/* Lado direito do header: config */}
               <div style={{display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
-                {(search||totalFilters>0)&&<span style={{fontSize:10,fontWeight:700,letterSpacing:".5px",textTransform:"uppercase",color:C.cinzaEscuro,background:accentBg,padding:"4px 10px",borderRadius:12,fontFamily:Fn.title}}>Filtrado</span>}
                 {/* Toggle Tabela/Card */}
                 <div style={{display:"flex",gap:3,padding:3,background:C.bg,borderRadius:8,border:`1px solid ${C.cardBorder}`}}>
                   <button onClick={()=>setView("table")} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 10px",fontSize:11,fontWeight:600,color:view==="table"?C.azulProfundo:C.cinzaChumbo,background:view==="table"?C.cardBg:"transparent",border:"none",borderRadius:6,cursor:"pointer",fontFamily:Fn.body,boxShadow:view==="table"?"0 1px 2px rgba(0,42,104,.08)":"none",transition:"all .15s"}}>{Ic.list(12,view==="table"?C.azulProfundo:C.cinzaChumbo)} Tabela</button>
@@ -422,14 +769,14 @@ export default function DataListingDemo() {
                 </div>
                 <div ref={configRef} style={{position:"relative"}}>
                   <button onClick={()=>setShowConfig(!showConfig)} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",fontSize:11,fontWeight:600,fontFamily:Fn.body,color:showConfig?C.azulProfundo:C.cinzaEscuro,background:showConfig?accentBg:C.cardBg,border:`1px solid ${showConfig?C.azulProfundo:C.cardBorder}`,borderRadius:8,cursor:"pointer",transition:"all .15s"}} title="Configurações da tabela">{Ic.settings(14,showConfig?C.azulProfundo:C.cinzaChumbo)} Configurar</button>
-                  {showConfig&&<div style={{position:"absolute",top:"calc(100% + 6px)",right:0,zIndex:50,width:300,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"10px 10px 10px 16px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden"}}>
+                  {showConfig&&<div style={{position:"absolute",top:"calc(100% + 6px)",right:0,zIndex:50,width:340,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"10px 10px 10px 16px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden"}}>
                     <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.cardBorder}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                       <span style={{fontSize:13,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>Configurações</span>
                       <button onClick={()=>setShowConfig(false)} style={{width:22,height:22,background:"transparent",border:"none",cursor:"pointer",borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center"}}>{Ic.x(12)}</button>
                     </div>
                     <div style={{display:"flex",borderBottom:`1px solid ${C.cardBorder}`,background:C.bg}}>
-                      {[{id:"colunas",label:"Colunas",icon:Ic.columns},{id:"densidade",label:"Densidade",icon:Ic.density},{id:"aparencia",label:"Aparência",icon:Ic.grid}].map(t=>(
-                        <button key={t.id} onClick={()=>setConfigTab(t.id)} style={{flex:1,display:"inline-flex",alignItems:"center",justifyContent:"center",gap:5,padding:"9px 8px",fontSize:11,fontWeight:600,color:configTab===t.id?C.azulProfundo:C.cinzaChumbo,background:configTab===t.id?C.cardBg:"transparent",border:"none",borderBottom:`2px solid ${configTab===t.id?C.azulProfundo:"transparent"}`,cursor:"pointer",fontFamily:Fn.body,transition:"all .12s"}}>{t.icon(12,configTab===t.id?C.azulProfundo:C.cinzaChumbo)} {t.label}</button>
+                      {[{id:"colunas",label:"Colunas",icon:Ic.columns},{id:"densidade",label:"Densidade",icon:Ic.density},{id:"ordenacao",label:"Ordenação",icon:Ic.sortAsc},{id:"aparencia",label:"Aparência",icon:Ic.grid}].map(t=>(
+                        <button key={t.id} onClick={()=>setConfigTab(t.id)} style={{flex:1,display:"inline-flex",alignItems:"center",justifyContent:"center",gap:4,padding:"9px 4px",fontSize:10,fontWeight:600,color:configTab===t.id?C.azulProfundo:C.cinzaChumbo,background:configTab===t.id?C.cardBg:"transparent",border:"none",borderBottom:`2px solid ${configTab===t.id?C.azulProfundo:"transparent"}`,cursor:"pointer",fontFamily:Fn.body,transition:"all .12s",whiteSpace:"nowrap"}}>{t.icon(12,configTab===t.id?C.azulProfundo:C.cinzaChumbo)} {t.label}</button>
                       ))}
                     </div>
                     <div style={{padding:"12px 16px",maxHeight:320,overflowY:"auto"}}>
@@ -459,6 +806,38 @@ export default function DataListingDemo() {
                           </div>
                         )})}
                       </div>}
+                      {configTab==="ordenacao"&&<div style={{display:"flex",flexDirection:"column",gap:2}}>
+                        <div onClick={()=>setSortableS(v=>!v)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 8px",borderRadius:6,cursor:"pointer",transition:"background .12s"}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:11,fontWeight:600,color:C.cinzaEscuro}}>Ordenar por coluna</div>
+                            <div style={{fontSize:10,color:C.cinzaChumbo}}>Padrão: {sortableS?"Sim":"Não"} — clique no header ordena</div>
+                          </div>
+                          <Toggle checked={sortableS} onChange={()=>{}}/>
+                        </div>
+                        <div style={{padding:"2px 8px 8px",fontSize:10,color:C.textLight,lineHeight:1.5}}>Desligado, o ícone de ordenação some do header e o clique não reordena — útil pra listas já pré-ordenadas pelo backend.</div>
+                        <span style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,margin:"6px 0 6px 4px",paddingTop:6,borderTop:`1px solid ${C.cardBorder}`}}>Coluna padrão</span>
+                        <div onClick={()=>setSortBy({col:null,dir:"asc"})} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 8px",borderRadius:6,cursor:"pointer",background:sortBy.col===null?accentBg:"transparent",transition:"background .1s"}} onMouseEnter={e=>{if(sortBy.col!==null)e.currentTarget.style.background=C.bg}} onMouseLeave={e=>{if(sortBy.col!==null)e.currentTarget.style.background="transparent"}}>
+                          <div style={{width:14,height:14,borderRadius:"50%",border:`1.5px solid ${sortBy.col===null?C.azulProfundo:C.cardBorder}`,background:sortBy.col===null?C.azulProfundo:C.branco,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{sortBy.col===null&&<div style={{width:5,height:5,borderRadius:"50%",background:C.branco}}/>}</div>
+                          <span style={{fontSize:11,color:C.cinzaEscuro,fontWeight:500}}>Nenhuma (ordem original)</span>
+                        </div>
+                        {visibleColumnList.filter(c=>c.id!=="actions").map(col=>{
+                          const isA=sortBy.col===col.id;
+                          return(
+                            <div key={col.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"8px 8px",borderRadius:6,background:isA?accentBg:"transparent",transition:"background .1s"}} onMouseEnter={e=>{if(!isA)e.currentTarget.style.background=C.bg}} onMouseLeave={e=>{if(!isA)e.currentTarget.style.background="transparent"}}>
+                              <div onClick={()=>setSortBy(s=>({col:col.id,dir:s.col===col.id?s.dir:"asc"}))} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",flex:1}}>
+                                <div style={{width:14,height:14,borderRadius:"50%",border:`1.5px solid ${isA?C.azulProfundo:C.cardBorder}`,background:isA?C.azulProfundo:C.branco,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{isA&&<div style={{width:5,height:5,borderRadius:"50%",background:C.branco}}/>}</div>
+                                <span style={{fontSize:11,color:C.cinzaEscuro,fontWeight:500}}>{col.label}</span>
+                              </div>
+                              {isA&&(
+                                <button onClick={()=>setSortBy(s=>({...s,dir:s.dir==="asc"?"desc":"asc"}))} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 8px",fontSize:10,fontWeight:600,color:C.azulProfundo,background:C.cardBg,border:`1px solid ${C.azulCeu}`,borderRadius:5,cursor:"pointer",fontFamily:Fn.body,flexShrink:0}}>
+                                  {sortBy.dir==="asc"?Ic.sortAsc(10,C.azulProfundo):Ic.sortDesc(10,C.azulProfundo)}
+                                  {sortBy.dir==="asc"?"Crescente":"Decrescente"}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>}
                       {configTab==="aparencia"&&<div style={{display:"flex",flexDirection:"column",gap:2}}>
                         <span style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,marginBottom:6,marginLeft:4}}>Aparência da tabela</span>
                         {[{id:"zebra",label:"Linhas zebradas",desc:"Alterna fundo das linhas"},{id:"verticalBorders",label:"Bordas verticais",desc:"Linhas entre colunas"},{id:"stickyHeader",label:"Header fixo",desc:"Cabeçalho fica visível ao rolar"},{id:"wrapText",label:"Quebra de linha",desc:"Texto longo quebra em várias linhas"}].map(opt=>(
@@ -473,7 +852,12 @@ export default function DataListingDemo() {
                       </div>}
                     </div>
                     <div style={{padding:"10px 14px",borderTop:`1px solid ${C.cardBorder}`,background:C.bg,display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
-                      <button onClick={configTab==="colunas"?restoreCols:()=>{setDensity("normal");setAppearance({zebra:true,verticalBorders:false,stickyHeader:true,wrapText:false})}} style={{fontSize:10,color:C.cinzaChumbo,background:"transparent",border:"none",cursor:"pointer",fontFamily:Fn.body,fontWeight:600}}>Restaurar padrão</button>
+                      <button onClick={()=>{
+                        if(configTab==="colunas")restoreCols();
+                        else if(configTab==="densidade")setDensity("normal");
+                        else if(configTab==="ordenacao"){setSortableS(true);setSortBy({col:null,dir:"asc"})}
+                        else setAppearance({zebra:true,verticalBorders:false,stickyHeader:true,wrapText:false});
+                      }} style={{fontSize:10,color:C.cinzaChumbo,background:"transparent",border:"none",cursor:"pointer",fontFamily:Fn.body,fontWeight:600}}>Restaurar padrão</button>
                       <button onClick={()=>setShowConfig(false)} style={{padding:"6px 12px",fontSize:11,fontWeight:700,color:C.branco,background:C.azulProfundo,border:"none",borderRadius:6,cursor:"pointer",fontFamily:Fn.body}}>Aplicar</button>
                     </div>
                   </div>}
@@ -487,11 +871,11 @@ export default function DataListingDemo() {
                 <thead><tr style={{background:C.bg}}>
                   <th style={{padding:`8px ${D.padX}px`,textAlign:"left",width:36,borderBottom:`2px solid ${C.cardBorder}`}}><Checkbox checked={selected.size===data.length&&selected.size>0} onChange={toggleAll} size={14}/></th>
                   {visibleColumnList.filter(c=>c.id!=="actions").map(col=>(
-                    <th key={col.id} onClick={()=>setSortBy(s=>({col:col.id,dir:s.col===col.id&&s.dir==="asc"?"desc":"asc"}))} style={{padding:`8px ${D.padX}px`,textAlign:col.id==="valor"?"right":"left",fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,whiteSpace:"nowrap",cursor:"pointer",borderRight:appearance.verticalBorders?`1px solid ${C.cardBorder}`:"none"}}>
-                      <span style={{display:"inline-flex",alignItems:"center",gap:4}}>{col.label}{sortBy.col===col.id?Ic.sortAsc(10):Ic.sortNone(10)}</span>
+                    <th key={col.id} onClick={()=>sortableS&&setSortBy(s=>({col:col.id,dir:s.col===col.id&&s.dir==="asc"?"desc":"asc"}))} style={{padding:`8px ${D.padX}px`,textAlign:"center",fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaEscuro,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,whiteSpace:"nowrap",cursor:sortableS?"pointer":"default",borderRight:appearance.verticalBorders?`1px solid ${C.cardBorder}`:"none"}}>
+                      <span style={{display:"inline-flex",alignItems:"center",gap:4}}>{col.label}{sortableS&&(sortBy.col===col.id?(sortBy.dir==="asc"?Ic.sortAsc(10):Ic.sortDesc(10)):Ic.sortNone(10))}</span>
                     </th>
                   ))}
-                  {visibleCols.has("actions")&&<th style={{padding:`8px ${D.padX}px`,textAlign:"center",fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,width:80}}>Ações</th>}
+                  {visibleCols.has("actions")&&<th style={{padding:`8px ${D.padX}px`,textAlign:"center",fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaEscuro,fontFamily:Fn.title,borderBottom:`2px solid ${C.cardBorder}`,width:80}}>Ações</th>}
                 </tr></thead>
                 <tbody>{data.map((r,i)=>{
                   const isSel=selected.has(r.id);
@@ -506,10 +890,17 @@ export default function DataListingDemo() {
                     {visibleCols.has("sla")&&<td style={{padding:`0 ${D.padX}px`,borderRight:appearance.verticalBorders?`1px solid ${C.cardBorder}`:"none"}}><div style={{display:"flex",alignItems:"center",gap:6,minWidth:80}}><div style={{flex:1,height:4,borderRadius:2,background:`${r.sla>=70?C.verdeFloresta:r.sla>=50?C.amareloEscuro:C.danger}20`}}><div style={{height:4,borderRadius:2,background:r.sla>=70?C.verdeFloresta:r.sla>=50?C.amareloEscuro:C.danger,width:`${r.sla}%`}}/></div><span style={{fontSize:9,fontFamily:Fn.mono,fontWeight:700,color:r.sla>=70?C.verdeFloresta:r.sla>=50?C.amareloEscuro:C.danger}}>{r.sla}%</span></div></td>}
                     {visibleCols.has("valor")&&<td style={{padding:`0 ${D.padX}px`,fontSize:D.fs-1,fontFamily:Fn.mono,fontWeight:700,color:C.cinzaEscuro,textAlign:"right",whiteSpace:"nowrap",borderRight:appearance.verticalBorders?`1px solid ${C.cardBorder}`:"none"}}>R$ {r.valor.toLocaleString("pt-BR")}</td>}
                     {visibleCols.has("data")&&<td style={{padding:`0 ${D.padX}px`,fontSize:D.fs-1,fontFamily:Fn.mono,color:C.textMuted,whiteSpace:"nowrap",borderRight:appearance.verticalBorders?`1px solid ${C.cardBorder}`:"none"}}>{r.data}</td>}
-                    {visibleCols.has("actions")&&<td style={{padding:`0 ${D.padX}px`,textAlign:"center"}}><div style={{display:"inline-flex",gap:2}}>
-                      <button style={{width:24,height:24,borderRadius:5,background:"transparent",border:"none",cursor:"pointer",display:"inline-flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{Ic.edit(12)}</button>
-                      <button style={{width:24,height:24,borderRadius:5,background:"transparent",border:"none",cursor:"pointer",display:"inline-flex",alignItems:"center",justifyContent:"center"}} onMouseEnter={e=>e.currentTarget.style.background=C.bg} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{Ic.more(12)}</button>
-                    </div></td>}
+                    {visibleCols.has("actions")&&<td style={{padding:`0 ${D.padX}px`,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+                      <RowActionsMenu
+                        rowId={r.id}
+                        radius={56}
+                        actions={[
+                          {key:"edit",label:"Editar pedido",icon:<Pencil className="h-4 w-4"/>,onClick:()=>undefined},
+                          {key:"cancel",label:"Cancelar",icon:<Ban className="h-4 w-4"/>,danger:true,onClick:()=>undefined},
+                          {key:"delete",label:"Excluir",icon:<Trash2 className="h-4 w-4"/>,danger:true,onClick:()=>undefined},
+                        ]}
+                      />
+                    </td>}
                   </tr>);
                 })}</tbody>
               </table>
@@ -538,19 +929,30 @@ export default function DataListingDemo() {
               )})}
             </div>}
 
-            <div style={{padding:"12px 18px",borderTop:`1px solid ${C.cardBorder}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+            {/* Footer — mesma anatomia do footer do <Table> governado (TableDoc.tsx:320-343):
+                faixa C.bg, range à esquerda, "Linhas:" + nav ‹ 1 2 3 4 › à direita. */}
+            <div style={{padding:"10px 16px",borderTop:`1px solid ${C.cardBorder}`,background:C.bg,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",fontSize:11,color:C.cinzaChumbo,fontFamily:Fn.body}}>
               <span style={{fontSize:11,color:C.textMuted}}>Mostrando 1–{data.length} de 247 registros {selected.size>0&&<>· <strong style={{color:C.cinzaEscuro}}>{selected.size} selecionado{selected.size>1?"s":""}</strong></>}</span>
-              <div style={{display:"flex",gap:4}}>
-                {["←","1","2","3","4","→"].map((p,i)=>(
-                  <button key={i} style={{minWidth:28,height:28,padding:"0 8px",fontSize:11,fontWeight:600,color:p==="1"?C.branco:C.cinzaEscuro,background:p==="1"?C.azulProfundo:C.cardBg,border:`1px solid ${p==="1"?C.azulProfundo:C.cardBorder}`,borderRadius:6,cursor:"pointer",fontFamily:Fn.body}}>{p}</button>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginLeft:"auto"}}>
+                <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  <span style={{fontSize:11,color:C.textMuted}}>Linhas:</span>
+                  <select defaultValue={10} style={{padding:"2px 4px",fontSize:11,border:`1px solid ${C.cardBorder}`,borderRadius:4,background:C.cardBg,color:C.cinzaEscuro,fontFamily:Fn.body,cursor:"pointer"}}>
+                    {[10,25,50].map(n=><option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+                <button style={{padding:"4px 10px",fontSize:11,fontWeight:600,fontFamily:Fn.body,background:"transparent",color:C.textLight,border:`1px solid ${C.cardBorder}`,borderRadius:5,cursor:"default",transition:"all .15s"}}>‹</button>
+                {[1,2,3,4].map(p=>(
+                  <button key={p} style={{width:24,height:24,fontSize:11,fontWeight:p===1?700:400,fontFamily:Fn.body,background:p===1?C.azulProfundo:"transparent",color:p===1?C.branco:C.cinzaChumbo,border:p===1?"none":`1px solid ${C.cardBorder}`,borderRadius:5,cursor:"pointer"}}>{p}</button>
                 ))}
+                <button style={{padding:"4px 10px",fontSize:11,fontWeight:600,fontFamily:Fn.body,background:C.cardBg,color:C.azulProfundo,border:`1px solid ${C.azulCeu}`,borderRadius:5,cursor:"pointer",transition:"all .15s"}}>›</button>
               </div>
             </div>
           </div>
+          </CopyableInline>
         </Section>
 
         {/* ═══ 02 — Header do Painel ═══ */}
-        <Section n="02" title="Header do Painel" desc="Faixa navy no topo do painel — identidade do sistema. Sempre presente, à esquerda ícone + título + subtítulo, à direita o CTA principal de criação. Usa o gradient navy padrão FIPS com JunctionLines decorativas.">
+        <Section mob={mob} n="02" title="Header do Painel" desc="Faixa navy no topo do painel — identidade do sistema. Sempre presente, à esquerda ícone + título + subtítulo, à direita o CTA principal de criação. Usa o gradient navy padrão FIPS com JunctionLines decorativas.">
           <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:mob?16:24,boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
             {/* Mini exemplo do header */}
             <div style={{background:dark?`linear-gradient(135deg,#1e2a3a 0%,#162030 50%,#1a2840 100%)`:`linear-gradient(135deg,${C.gradFrom} 0%,${C.gradTo} 60%,#001A4A 100%)`,borderRadius:"10px 10px 10px 18px",padding:"18px 22px",position:"relative",overflow:"hidden",marginBottom:18,border:dark?"1px solid rgba(147,189,228,0.08)":"none",boxShadow:dark?"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)":"none"}}>
@@ -584,7 +986,7 @@ export default function DataListingDemo() {
         </Section>
 
         {/* ═══ 03 — Cards do Painel ═══ */}
-        <Section n="03" title="Cards do Painel" desc="Bloco de cards entre o Header e a Toolbar. Por padrão usa CardKPI com sparkline, mas qualquer card do catálogo de Cards pode ser usado dependendo do contexto: Status, Relatório, Princípio, Resumo, Ação, Lista. Sempre 4 cards (2×2 mobile).">
+        <Section mob={mob} n="03" title="Cards do Painel" desc="Bloco de cards entre o Header e a Toolbar. Por padrão usa CardKPI com sparkline, mas qualquer card do catálogo de Cards pode ser usado dependendo do contexto: Status, Relatório, Princípio, Resumo, Ação, Lista. Sempre 4 cards (2×2 mobile).">
 
           {/* Tipo padrão: KPI explicado */}
           <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:18,boxShadow:"0 1px 3px rgba(0,75,155,.04)",marginBottom:14}}>
@@ -650,13 +1052,13 @@ export default function DataListingDemo() {
         </Section>
 
         {/* ═══ 04 — Toolbar ═══ */}
-        <Section n="04" title="Toolbar" desc="Card próprio entre KPIs e Table. Esquerda agrupa filtros e busca (manipulação de dados). Direita agrupa exportações. Spacer no meio empurra os grupos pras pontas. Card minimal com mesmo borderRadius FIPS.">
+        <Section mob={mob} id="scope-segment" n="04" title="Toolbar" desc="Card entre KPIs e Table. Ordem Gestão OPA: Filtros → Alçada (ScopeSegment) → Busca (flex-1) → Período → Export. Alçada com fundo blue-100 e borda primary 1.5px.">
           <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
             {[
-              {title:"Esquerda — Manipulação",icon:Ic.filter,color:C.azulProfundo,items:["Filtros (multi-select popover)","Busca (DSInput desktop com focus state)","Período (single-select com Personalizado)","Botões agrupados, gap 10","Próximos da entrada de dados"]},
-              {title:"Direita — Exportação",icon:Ic.excel,color:"#1D6F42",items:["Excel (botão 34×34, ícone verde)","PDF (botão 34×34, ícone vermelho)","Hover suave com cor da extensão","Sem labels — só ícones com tooltip","Ações de saída de dados"]},
+              {title:"Esquerda — Manipulação",icon:Ic.filter,color:C.azulProfundo,items:["Filtros (outline sm, abre Drawer)","Alçada: ScopeSegment colado ao Filtros","Busca flex-1 (placeholder OPAs)","Período (presets + Personalizado)","gap 10 · padding 14×18"]},
+              {title:"Direita — Exportação",icon:Ic.excel,color:"#1D6F42",items:["Excel (botão 32.5×32.5, ícone verde)","PDF (botão 32.5×32.5, ícone vermelho)","Hover suave com cor da extensão","Sem labels — só ícones com tooltip","Ações de saída de dados · ExportButtons"]},
               {title:"Padrão visual",icon:Ic.list,color:C.amareloEscuro,items:["Card próprio com borderRadius FIPS","Padding 14px 18px","display:flex flexWrap:wrap","Spacer central com flex:1","marginBottom 14 antes da Table"]},
-              {title:"Filtros oficiais",icon:Ic.calendar,color:C.verdeFloresta,items:["Multi-select (popover com 3 grupos)","Single-select (dropdown com radio)","Período suporta presets + Personalizado","Personalizado abre 2 inputs date","Contador no botão quando há filtros"]},
+              {title:"Filtros oficiais",icon:Ic.calendar,color:C.verdeFloresta,items:["Drawer lateral (nunca popover ancorado)","Pills p/ poucas opções · chip-dropdown p/ muitas","Período suporta presets + Personalizado","Contador no botão quando há filtros","Chips do valor filtrado no header da Table"]},
             ].map((r,i)=>(
               <div key={i} style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:18,boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
@@ -677,7 +1079,7 @@ export default function DataListingDemo() {
         </Section>
 
         {/* ═══ 05 — Table ═══ */}
-        <Section n="05" title="Table" desc="Card final do padrão. Header obrigatório com ícone, título e subtítulo à esquerda. À direita: badge Filtrado, toggle Tabela/Card e botão Configurar. Body com tabela densa, footer com paginação completa.">
+        <Section mob={mob} n="05" title="Table" desc="Card final do padrão. Header obrigatório com ícone, título e subtítulo à esquerda — e, colados no título, os chips de filtro ativo (um por VALOR, com X que remove só aquele). À direita: toggle Tabela/Card e botão Configurar. Body com tabela densa, footer com paginação completa.">
           <div style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:24,boxShadow:"0 1px 3px rgba(0,75,155,.04)",marginBottom:14}}>
             {/* Toggle Tabela/Card interativo */}
             <div style={{fontSize:9,fontWeight:700,letterSpacing:"1px",textTransform:"uppercase",color:C.cinzaChumbo,fontFamily:Fn.title,marginBottom:10}}>Toggle Tabela / Card</div>
@@ -698,11 +1100,12 @@ export default function DataListingDemo() {
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
               {[
                 {n:"①",label:"Header obrigatório",desc:"Ícone 48×48 + título Saira 16/700 + subtítulo Open Sans 11. Sem exceções."},
-                {n:"②",label:"Lado direito do header",desc:"Filtrado badge + Toggle Tabela/Card + botão Configurar."},
-                {n:"③",label:"Body — Tabela densa",desc:"Sortable, zebra, hover, seleção em massa. Densidade ajustável."},
-                {n:"④",label:"Configurar (3 abas)",desc:"Colunas (visível/oculta), Densidade (3 níveis), Aparência (4 toggles)."},
-                {n:"⑤",label:"Footer — Paginação",desc:"Mostrando X-Y de Z + per-page selector + nav (primeira/anterior/páginas/próxima/última)."},
-                {n:"⑥",label:"Estados",desc:"Empty, loading skeleton, erro, selecionado — todos obrigatórios."},
+                {n:"②",label:"Chips de filtro ativo",desc:"À ESQUERDA, colados no título (separados por ·). Um chip por VALOR filtrado — nunca um badge \"Filtrado\" nem a contagem \"3 filtros\", que não dizem O QUE está filtrado. X remove só aquele valor; acima de 4 o excedente vira \"+N\" que reabre o Drawer; a partir de 2 aparece \"Limpar\". Componente: ActiveFilterChips."},
+                {n:"③",label:"Lado direito do header",desc:"Toggle Tabela/Card + botão Configurar. Filtro NÃO entra aqui."},
+                {n:"④",label:"Body — Tabela densa",desc:"Sortable, zebra, hover, seleção em massa. Densidade ajustável."},
+                {n:"⑤",label:"Configurar (4 abas)",desc:"Colunas (visível/oculta), Densidade (3 níveis), Ordenação (liga/desliga + coluna padrão), Aparência (4 toggles)."},
+                {n:"⑥",label:"Footer — Paginação",desc:"Mostrando X-Y de Z + per-page selector + nav (primeira/anterior/páginas/próxima/última)."},
+                {n:"⑦",label:"Estados",desc:"Empty, loading skeleton, erro, selecionado — todos obrigatórios."},
               ].map((it,i)=>(
                 <div key={i} style={{padding:12,background:C.bg,borderRadius:8,display:"flex",gap:10,alignItems:"flex-start"}}>
                   <span style={{fontSize:14,fontWeight:800,color:C.amareloEscuro,fontFamily:Fn.title}}>{it.n}</span>
@@ -717,21 +1120,21 @@ export default function DataListingDemo() {
             <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
               <div ref={configDemoRef} style={{position:"relative"}}>
                 <button onClick={()=>setShowConfigDemo(!showConfigDemo)} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",fontSize:11,fontWeight:600,fontFamily:Fn.body,color:showConfigDemo?C.azulProfundo:C.cinzaEscuro,background:showConfigDemo?accentBg:C.cardBg,border:`1px solid ${showConfigDemo?C.azulProfundo:C.cardBorder}`,borderRadius:8,cursor:"pointer",transition:"all .15s"}}>{Ic.settings(14,showConfigDemo?C.azulProfundo:C.cinzaChumbo)} Configurar</button>
-                {showConfigDemo&&<div style={{position:"absolute",top:"calc(100% + 6px)",left:"50%",transform:"translateX(-50%)",zIndex:50,width:300,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"10px 10px 10px 16px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden"}}>
+                {showConfigDemo&&<div style={{position:"absolute",top:"calc(100% + 6px)",left:"50%",transform:"translateX(-50%)",zIndex:50,width:340,background:C.cardBg,border:`1px solid ${C.cardBorder}`,borderRadius:"10px 10px 10px 16px",boxShadow:"0 12px 36px rgba(0,42,104,.18),0 2px 8px rgba(0,42,104,.06)",animation:"popIn .18s ease",overflow:"hidden"}}>
                   <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.cardBorder}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                     <span style={{fontSize:13,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>Configurações</span>
                     <button onClick={()=>setShowConfigDemo(false)} style={{width:22,height:22,background:"transparent",border:"none",cursor:"pointer",borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center"}}>{Ic.x(12)}</button>
                   </div>
                   <div style={{display:"flex",borderBottom:`1px solid ${C.cardBorder}`,background:C.bg}}>
-                    {[{id:"colunas",label:"Colunas",icon:Ic.columns},{id:"densidade",label:"Densidade",icon:Ic.density},{id:"aparencia",label:"Aparência",icon:Ic.grid}].map(t=>(
-                      <button key={t.id} onClick={()=>setConfigTab(t.id)} style={{flex:1,display:"inline-flex",alignItems:"center",justifyContent:"center",gap:5,padding:"9px 8px",fontSize:11,fontWeight:600,color:configTab===t.id?C.azulProfundo:C.cinzaChumbo,background:configTab===t.id?C.cardBg:"transparent",border:"none",borderBottom:`2px solid ${configTab===t.id?C.azulProfundo:"transparent"}`,cursor:"pointer",fontFamily:Fn.body,transition:"all .12s"}}>{t.icon(12,configTab===t.id?C.azulProfundo:C.cinzaChumbo)} {t.label}</button>
+                    {[{id:"colunas",label:"Colunas",icon:Ic.columns},{id:"densidade",label:"Densidade",icon:Ic.density},{id:"ordenacao",label:"Ordenação",icon:Ic.sortAsc},{id:"aparencia",label:"Aparência",icon:Ic.grid}].map(t=>(
+                      <button key={t.id} onClick={()=>setConfigTab(t.id)} style={{flex:1,display:"inline-flex",alignItems:"center",justifyContent:"center",gap:4,padding:"9px 4px",fontSize:10,fontWeight:600,color:configTab===t.id?C.azulProfundo:C.cinzaChumbo,background:configTab===t.id?C.cardBg:"transparent",border:"none",borderBottom:`2px solid ${configTab===t.id?C.azulProfundo:"transparent"}`,cursor:"pointer",fontFamily:Fn.body,transition:"all .12s",whiteSpace:"nowrap"}}>{t.icon(12,configTab===t.id?C.azulProfundo:C.cinzaChumbo)} {t.label}</button>
                     ))}
                   </div>
                   <div style={{padding:"14px 16px",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <div style={{textAlign:"center"}}>
-                      <div style={{width:36,height:36,borderRadius:9,background:alpha(C.azulProfundo,0.06),display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:8}}>{configTab==="colunas"?Ic.columns(18,C.azulProfundo):configTab==="densidade"?Ic.density(18,C.azulProfundo):Ic.grid(18,C.azulProfundo)}</div>
-                      <div style={{fontSize:11,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>Aba {configTab==="colunas"?"Colunas":configTab==="densidade"?"Densidade":"Aparência"}</div>
-                      <div style={{fontSize:10,color:C.cinzaChumbo,marginTop:2,maxWidth:220}}>{configTab==="colunas"?"Visibilidade e ordem das colunas":configTab==="densidade"?"Altura das linhas (3 níveis)":"Zebra, bordas, header fixo, wrap"}</div>
+                      <div style={{width:36,height:36,borderRadius:9,background:alpha(C.azulProfundo,0.06),display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:8}}>{configTab==="colunas"?Ic.columns(18,C.azulProfundo):configTab==="densidade"?Ic.density(18,C.azulProfundo):configTab==="ordenacao"?Ic.sortAsc(18,C.azulProfundo):Ic.grid(18,C.azulProfundo)}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>Aba {configTab==="colunas"?"Colunas":configTab==="densidade"?"Densidade":configTab==="ordenacao"?"Ordenação":"Aparência"}</div>
+                      <div style={{fontSize:10,color:C.cinzaChumbo,marginTop:2,maxWidth:220}}>{configTab==="colunas"?"Visibilidade e ordem das colunas":configTab==="densidade"?"Altura das linhas (3 níveis)":configTab==="ordenacao"?"Habilitar e definir coluna padrão":"Zebra, bordas, header fixo, wrap"}</div>
                     </div>
                   </div>
                   <div style={{padding:"10px 14px",borderTop:`1px solid ${C.cardBorder}`,background:C.bg,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -744,8 +1147,8 @@ export default function DataListingDemo() {
             <div style={{padding:"12px 14px",background:C.bg,borderRadius:8,marginBottom:18,display:"flex",alignItems:"center",gap:12}}>
               <div style={{width:32,height:32,borderRadius:8,background:alpha(C.azulProfundo,0.06),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{Ic.settings(16,C.azulProfundo)}</div>
               <div style={{flex:1}}>
-                <div style={{fontSize:11,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>{showConfigDemo?<>Popover aberto · Aba <span style={{color:C.cinzaEscuro}}>{configTab==="colunas"?"Colunas":configTab==="densidade"?"Densidade":"Aparência"}</span></>:"Clique no botão acima para abrir o popover"}</div>
-                <div style={{fontSize:10,color:C.cinzaChumbo,marginTop:2}}>Popover ancorado no botão · 3 abas (Colunas, Densidade, Aparência) · Footer com Restaurar padrão e Aplicar · Fecha ao clicar fora</div>
+                <div style={{fontSize:11,fontWeight:700,color:C.cinzaEscuro,fontFamily:Fn.title}}>{showConfigDemo?<>Popover aberto · Aba <span style={{color:C.cinzaEscuro}}>{configTab==="colunas"?"Colunas":configTab==="densidade"?"Densidade":configTab==="ordenacao"?"Ordenação":"Aparência"}</span></>:"Clique no botão acima para abrir o popover"}</div>
+                <div style={{fontSize:10,color:C.cinzaChumbo,marginTop:2}}>Popover ancorado no botão · 4 abas (Colunas, Densidade, Ordenação, Aparência) · Footer com Restaurar padrão e Aplicar · Fecha ao clicar fora</div>
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
@@ -753,7 +1156,7 @@ export default function DataListingDemo() {
                 {n:"①",label:"Botão (estado normal)",desc:"Ícone sliders + label 'Configurar'. Border cardBorder, background branco, color cinzaEscuro. Padding 7×12, fontSize 11."},
                 {n:"②",label:"Botão (estado ativo)",desc:"Quando o popover está aberto: border azulProfundo, background azulCeuClaro, ícone e texto em azulProfundo."},
                 {n:"③",label:"Popover anchored",desc:"Position absolute top:calc(100% + 6px), right:0 (alinhado pela direita). Width 300, borderRadius FIPS, shadow elevada."},
-                {n:"④",label:"3 abas no header",desc:"Tabs com ícone + label, ativa em azulProfundo com border-bottom 2px. Conteúdo trocado conforme aba selecionada."},
+                {n:"④",label:"4 abas no header",desc:"Tabs com ícone + label, ativa em azulProfundo com border-bottom 2px. Conteúdo trocado conforme aba selecionada."},
                 {n:"⑤",label:"Footer com 2 ações",desc:"Restaurar padrão (link cinza à esquerda) + Aplicar (botão azulProfundo à direita). Aplicar fecha o popover."},
                 {n:"⑥",label:"Click outside",desc:"Listener no document.mousedown verifica se o clique foi fora do ref do popover. Se sim, fecha automaticamente."},
               ].map((it,i)=>(
@@ -764,11 +1167,12 @@ export default function DataListingDemo() {
               ))}
             </div>
           </div>
-          {/* Configurar — 3 abas explicativas */}
-          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:12}}>
+          {/* Configurar — 4 abas explicativas */}
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
             {[
               {title:"Aba Colunas",icon:Ic.columns,color:C.azulProfundo,items:["Lista todas as colunas disponíveis","Drag handle pra reordenar","Checkbox visível/oculta","Colunas fixas não podem ser ocultadas"]},
               {title:"Aba Densidade",icon:Ic.density,color:C.amareloEscuro,items:["Compacta (30px)","Normal (42px) — padrão","Confortável (56px)","Ajusta altura, fontSize e padding"]},
+              {title:"Aba Ordenação",icon:Ic.sortAsc,color:C.verdeEscuro,items:["Toggle Sim/Não — liga/desliga a ordenação","Coluna padrão: radio-card + Crescente/Decrescente","Header some o ícone e para de reordenar quando Não","Útil pra listas já pré-ordenadas pelo backend"]},
               {title:"Aba Aparência",icon:Ic.grid,color:C.verdeFloresta,items:["Linhas zebradas","Bordas verticais","Header fixo","Quebra de linha em texto longo"]},
             ].map((r,i)=>(
               <div key={i} style={{background:C.cardBg,borderRadius:"10px 10px 10px 18px",border:`1px solid ${C.cardBorder}`,padding:16,boxShadow:"0 1px 3px rgba(0,75,155,.04)"}}>
@@ -790,7 +1194,7 @@ export default function DataListingDemo() {
         </Section>
 
         {/* ═══ 06 — Regras gerais ═══ */}
-        <Section n="06" title="Regras gerais do Painel" desc="Diretrizes obrigatórias para qualquer Painel de Relatório no DS-FIPS. A ordem dos elementos é fixa, não pode ser invertida nem ter elementos pulados.">
+        <Section mob={mob} n="06" title="Regras gerais do Painel" desc="Diretrizes obrigatórias para qualquer Painel de Relatório no DS-FIPS. A ordem dos elementos é fixa, não pode ser invertida nem ter elementos pulados.">
           {/* Card destacado com a ordem obrigatória */}
           <div style={{background:`linear-gradient(135deg,${alpha(C.azulProfundo,0.03)} 0%,${C.amareloOuro}10 100%)`,border:`2px solid ${C.amareloOuro}`,borderRadius:"12px 12px 12px 24px",padding:mob?16:20,marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
@@ -820,7 +1224,8 @@ export default function DataListingDemo() {
               {t:"Quando usar este Painel",d:"Sempre que precisar exibir dados administrativos com 4 elementos: ações principais (Header), métricas agregadas (KPIs), manipulação de dados (Toolbar) e listagem detalhada (Table). Ex: Painel de Requisições, Ações, Ocorrências."},
               {t:"Header obrigatório no Card",d:"Toda Table dentro do painel precisa de header próprio com ícone (48×48), título (Saira 16/700) e subtítulo (Open Sans 11). Sem exceções — é a identidade do dataset, distinto do Header navy do painel."},
               {t:"4 KPIs sempre",d:"Bloco de KPIs sempre tem 4 cards (2×2 mobile). Agregados de TODA a base, não da página. Sparkline area chart obrigatório com hover interativo. Sem linha reta — todas as séries com spread visível."},
-              {t:"Toolbar separada",d:"Card próprio entre KPIs e Table. Esquerda agrupa Filtros + Busca + Período. Direita agrupa Excel + PDF. Spacer central. Nunca colocar exportação à esquerda nem filtros à direita."},
+              {t:"Toolbar separada",d:"Card próprio entre KPIs e Table. Esquerda: Filtros → Alçada (ScopeSegment) → Busca → Período (ordem fixa). Direita: Excel + PDF. Spacer central. Nunca colocar exportação à esquerda nem filtros à direita."},
+              {t:"Chips de filtro ativo",d:"Toda listagem com botão Filtros mostra no header da Table um chip por VALOR filtrado (ex: \"Moderado ×\", \"Guarujá ×\") — nunca só a contagem (\"3 filtros\"). Cada X remove aquele valor; acima de 4 chips o excedente vira \"+N\" que reabre o Drawer; a partir de 2 chips aparece um \"Limpar\" textual. O usuário precisa ler o que está filtrando sem reabrir o Drawer."},
               {t:"Densidade padrão Normal",d:"Tabela inicia em Normal (42px). Compacta só para power users em telas com 1000+ registros. Confortável para apresentações ou acessibilidade."},
               {t:"Colunas fixas",d:"Pelo menos uma coluna identificadora (Código/ID) e a coluna Ações devem ser fixas. Não podem ser desabilitadas pelo usuário no botão Configurar."},
               {t:"Persistência por usuário",d:"Preferências de Colunas, Densidade, Aparência e Filtros devem persistir por usuário (localStorage ou backend), não por sessão."},
@@ -852,7 +1257,7 @@ export default function DataListingDemo() {
 
 function DataListingPage() {
   return (
-    <div style={{ background: 'var(--color-surface-muted)', minHeight: '100vh' }}>
+    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
       {/* Header Navy — icone + titulo + subtitulo + CTA */}
       <div style={{
         background: 'linear-gradient(135deg, var(--color-gov-gradient-from), var(--color-gov-gradient-to))',
@@ -878,8 +1283,8 @@ function DataListingPage() {
 
       {/* Toolbar — Filtros | Busca | Periodo || Excel | PDF */}
       <div style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '12px 12px 12px 24px',
         padding: '12px 20px', margin: '16px 0',
         display: 'flex', justifyContent: 'space-between',
@@ -894,8 +1299,8 @@ function DataListingPage() {
 
       {/* Table — border-radius caixa, header proprio */}
       <div style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '12px 12px 12px 24px',
         overflow: 'hidden',
       }}>

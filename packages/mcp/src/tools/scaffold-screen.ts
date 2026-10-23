@@ -766,10 +766,11 @@ export function DialogClose({ asChild, children, onClick, ...rest }: DialogClose
 }
 `
 
-// Banner de página do padrão do DS-FIPS (PageHeader, Design-system-FIPS#99).
-// Os valores ficam no próprio molde porque o globals.css empacotado não tem os
-// tokens --fips-banner-*: gradiente de #004B9B para #002A68, tile de 44px a 10%
-// e 19% do --color-accent, título h1 em --font-heading. Nenhum token novo.
+// Banner de página do padrão do DS-FIPS (PageHeader, DS 0.20.4).
+// Os valores ficam no próprio molde, para a tela gerada não depender das regras
+// .fips-page-header do globals.css: gradiente de #004B9B para #002A68, tile de
+// 44px a 10% e 19% do --color-accent, título h1 em --font-heading. Nenhum token
+// novo. Mesmos valores de exports/pattern-panel-hero/page-header.css do DS.
 const TPL_PAGE_HEADER = `import { type HTMLAttributes, type ReactNode } from 'react'
 
 const HEADINGS = { 1: 'h1', 2: 'h2', 3: 'h3', 4: 'h4', 5: 'h5', 6: 'h6' } as const

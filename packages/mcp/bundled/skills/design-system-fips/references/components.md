@@ -1,25 +1,40 @@
 # Components
 
+> Cobertura desta referência: **v0.11.33** (2026-08-11). Histórico completo em `src/docs/data/changelog.ts`.
+
 ## Barrel de exportação
 
-Fonte: `src/components/ui/index.ts`
+Duas camadas. **Sempre importe pela raiz** (`src/index.ts`) num app consumidor.
 
-O pacote expõe:
+### `src/index.ts` — entrada pública da library
 
-- `Button`
-- `Badge`
+Reexporta `./tokens`, `cn`, **tudo** de `components/ui` (abaixo), mais:
+
+- `FipsLogo` · `PageHero`, `PAGE_HERO_DEFAULT_DECORATION`
+- `HeroAtalho`, `HeroAtalhos`, `HeroFileira`
+- `AbasDeSecao`
+- `PageHeader` (+ `PageHeaderProps`, `PageHeaderStat`, `PageHeaderActionsProps`) · `PatternPanelHero` (apelido do PageHeader) · `BannerJunctionLines`, `BannerIconBox`, `FIPS_BANNER_*`
+- `StatsCard`, `StatsCardGrid` · `HowItWorksCard`, `HowItWorksGrid` · `RuleTile`, `RuleTileGrid`
+- `ExportButtons` · `ExportPreviewModal`, `resolveExportKeys` · `ListingKpiRow`
+- `FilterBlock`, `FilterBlockProps` (Filtros + busca + exportar; ver Padrões → Bloco enxuto)
+- `CircularCommandMenu` · `RowActionsMenu`
+- `ExcelIcon`, `PdfIcon`
+
+### `src/components/ui/index.ts` — primitives governados
+
+- `Button` + `buttonVariants` · `Badge` + `badgeVariants`
 - `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`
-- `Field`, `FieldLabel`, `FieldHint`, `FieldMessage`
-- `Input`
-- `InputGroup`
-- `Select`
-- `Textarea`
-- `Progress`
-- `Table`
-- `Tabs`
-- `Dialog`
-- `Drawer`
-- `Tooltip`
+- `Field`, `FieldLabel`, `FieldHint`, `FieldMessage` · `FieldTrigger`
+- `Input` · `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupText`, `InputGroupInput`, `InputGroupTextarea`
+- `Select` · `Textarea` · `Switch` · `Progress`
+- `Table`, `TableHeader`, `TableHead`, `TableBody`, `TableRow`, `TableCell`, `TableEmpty`
+- `AdminTableColumnMenu`, `AdminTablePagination`, `AdminTableSortHeader`, `AdminTableCompanyCell`, `AdminTableStatusDots`
+- `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`
+- `Dialog` (+ `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`, `DialogClose`, `DialogIconTile`, `DIALOG_CONTENT_SCROLL_WRAPPER_CLASS`) · `Modal`, `ModalFooter`
+- `Drawer` (+ `DrawerContent`, `DrawerHeader`, `DrawerTitle`, `DrawerDescription`, `DrawerClose`)
+- `Tooltip`, `TooltipProvider`, `TooltipTrigger`, `TooltipContent`
+
+**Exportado sem página de doc:** `Switch` (Radix, `src/components/ui/switch.tsx`). A página `/docs/components/switch` foi removida na v0.11.20 — o primitive e o composite `SettingsPreferenceRow` continuam funcionando em qualquer app consumidor, só ficaram sem doc dedicada.
 
 ## Button
 
@@ -34,6 +49,7 @@ Variantes exatas:
 - `accent`
 - `inverseOutline`
 - `success`
+- `successStrong` (verde escuro — `--color-btn-success-hover` em repouso e `--color-btn-success` no hover, inverso da variante `success`; no escuro `--color-success-strong` é cor de texto e não serve de fundo)
 - `ouro`
 - `danger`
 - `link`
@@ -63,17 +79,68 @@ Botão com loading:
 
 ## Badge
 
-Fonte: `src/components/ui/badge-variants.ts`
+Fontes:
 
-Variantes exatas:
+- `src/components/ui/badge-variants.ts` + `badge.tsx` — componente **governado** da library (o que se importa em produção).
+- `src/docs/pages/components/BadgeDoc.tsx` — catálogo visual completo (playground da doc, o "Storybook" do Badge).
 
-- `default`
-- `secondary`
-- `success`
-- `warning`
-- `danger`
-- `outline`
-- `info`
+> **Divergência conhecida:** library e playground usam APIs e paletas distintas. Em produção, importe o componente governado. O catálogo de semântica, composições e cenários abaixo vem do `BadgeDoc` (referência visual do design). Diferenças principais: o governado pinta com token translúcido (`bg-primary/10`, `bg-success/14`…) e é sempre pill; o catálogo da doc usa fundos pastel sólidos, radius `4px` (ou `999px` com `pill`) e inclui a variante `ouro`/Destaque, que **não** existe no governado.
+
+### API governada (library)
+
+```tsx
+import { Badge } from '@/components/ui/badge'
+
+<Badge variant="success" dot>Ativo</Badge>
+```
+
+Base (cva): `inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold`.
+
+Props: `variant` + `dot?: boolean` (bolinha `bg-current` antes do texto). Variantes exatas: `default`, `secondary`, `success`, `warning`, `danger`, `outline`, `info`.
+
+### Catálogo de variantes (semântica + rótulo pt-BR)
+
+| variant (library) | rótulo na doc | significado | quando usar |
+| --- | --- | --- | --- |
+| `default` | Padrão | azul institucional | identificador genérico, versão, categoria padrão |
+| `secondary` | Secundário | cinza neutro | metadados, contadores discretos, info de suporte |
+| `success` | Sucesso | verde positivo | ativo, aprovado, concluído, online (sempre com `dot`) |
+| `warning` | Atenção | laranja, alerta moderado | pendente, aguardando, prazo próximo, em revisão |
+| `danger` | Crítico | vermelho negativo | inativo, rejeitado, vencido, erro, offline |
+| `outline` | Contorno | só borda, mínimo impacto | tag de baixa prioridade, filtro, categoria discreta |
+| `info` | Informativo | azul claro neutro | "novo", "em análise", nota, tipo |
+| `ouro` *(só doc)* | Destaque | dourado | Fipcoins, conquistas, gamificação, item premium |
+
+No playground os nomes pt-BR são internos (`sucesso`/`atencao`/`critico`/`ouro`); ao consumir a library use os nomes técnicos (`success`/`warning`/`danger`).
+
+### Composições (Badge do playground)
+
+Props extras do Badge da doc: `dot`, `icon`, `count`, `onRemove`, `pill`, `size` (`sm`/`md`/`lg`).
+
+Regras:
+
+- **dot** — exclusivo para status que mudam dinamicamente; não usar em categoria fixa.
+- **icon** — máx. 1 por badge; não combinar `dot` + `icon` no mesmo badge.
+- **count** — fica à esquerda do texto, cor invertida (fundo = cor do texto); acima de 99 vira `99+`.
+- **onRemove** — X à direita com hover opacity; combina com `pill` para visual de tag/filtro.
+- **size dentro de tabela** — Badge em célula **acompanha a densidade** da `<Table>` via `useTableDensity()`: `comfortable → md`, `compact|normal → sm`, fora de tabela → `sm`. Não fixar `size` hardcoded em badge de célula; deixar o hook decidir. Ver wrapper `useBadgeSize()` em `src/components/BiBadges.tsx` (Governança BI) e **Data Listing → Tabela canônica** em `patterns.md`.
+
+### Tokens (catálogo da doc)
+
+Tamanhos: `sm` 10px · `md` 11px ★ (default) · `lg` 12px. Padding: `sm` 1×6 · `md` 2×8 · `lg` 3×10. Radius: `4px` padrão ou `999px` com `pill`. Texto Open Sans 600; contador Fira Code 700; line-height 1.3; `nowrap`. Dot: 5/6/7px (sm/md/lg).
+
+Cores por variante (claro → escuro):
+
+| variant | bg claro | text claro | bg escuro | text escuro |
+| --- | --- | --- | --- | --- |
+| `default` | `#004B9B` | `#FFFFFF` | `#1A6FC4` | `#FFFFFF` |
+| `secondary` | `#F2F4F8` | fg | — | — |
+| `success` | `#ECFDF5` | `#00904C` | `rgba(0,168,62,.15)` | `#4ADE80` |
+| `warning` | `#FFF7ED` | `#C2410C` | `rgba(251,191,36,.15)` | `#FBBF24` |
+| `danger` | `#FEF2F2` | `#B91C1C` | `rgba(248,113,113,.15)` | `#F87171` |
+| `outline` | transparent | fg | — | — |
+| `info` | `#D3E3F4` | `#002A68` | `rgba(147,189,228,.15)` | `#93BDE4` |
+| `ouro` | `#FEF9E7` | `#92400E` | `rgba(253,194,78,.15)` | `#FDC24E` |
 
 ## Card
 
@@ -115,10 +182,20 @@ Regras:
 
 Heights reais:
 
-- `Input`/`Select` default: `h-12`
-- `Input`/`Select` compact: `h-9`
+- `Input`/`Select`/`FieldTrigger` default: `h-12`
+- `Input`/`Select`/`FieldTrigger` compact: `h-8` (32px — `Select` `dense` é o mesmo valor, mantido por compat)
 - `Textarea` default: `min-h-[132px]`
 - `Textarea` compact: `min-h-[92px]`
+
+Caixa do campo (`Input`, `Select`, `Textarea`, `FieldTrigger`, `InputGroup` — todos compartilham):
+
+- **Radius**: `rounded-lg` (8px) — não `rounded-xl`.
+- **Borda**: `border border-[var(--color-border-control)]` (1px, sólida, sem alpha). No claro é a mesma cor de `--color-border`; no escuro é `#666666` (3,03:1 sobre o cartão). Hover: `--color-border-strong` no claro e `--color-fg-muted` no escuro.
+- **Fonte**: compact `text-[13px]`, default `text-[1.08rem]` (`Textarea` default `text-[1.02rem]`).
+- **Sombra em repouso**: nenhuma (`boxShadow: none`). Só o anel de foco (`focus-visible:ring-2 ring-[var(--color-primary)]/25`).
+- **Dark mode do foco/borda ativa**: `--color-primary` **não muda** entre light/dark neste projeto (fica `#004B9B` fixo — só `--color-border`/`--color-surface`/`--color-fg` etc. redefinem por tema). Por isso todo estado que usa `--color-primary` como acento (borda em foco, anel de foco, borda do Select aberto, borda do dropdown, opção selecionada) precisa do par manual `dark:border-[#93BDE4] dark:ring-[#93BDE4]/25` — sem isso o acento fica com baixo contraste no escuro. Não remover esses `dark:` — não são resíduo, são o substituto funcional da falta de um `--color-primary` dark.
+
+Fonte de verdade: `Field`/`FieldInput`/`Select` de `client/src/components/ui-sup/` no projeto QLP (`~/dev/projetos/QLP`), usados de verdade em `ColaboradorForm.tsx` (tela Edição Colaborador) — comentário do próprio `select.tsx` de lá documenta a cadeia Governança BI (canônico) → QLP (adaptado). Alinhados na v0.11.15 — a v0.11.14 tinha corrigido radius/borda mas errado a altura (35px, tirado do `DSInput` local de `/docs/components/input`, que diverge do padrão real de produto).
 
 Composição recomendada:
 
@@ -129,6 +206,28 @@ Composição recomendada:
   <FieldMessage tone="danger">Campo obrigatorio</FieldMessage>
 </Field>
 ```
+
+Cuidado — o dropdown do `Select` é `absolute` (sem portal). Ancestral com `overflow-hidden` corta a lista "pra dentro". Ver **Data Listing → Cuidado (clipping)** em `patterns.md`. Nunca corrija no `Select` do DS (é sincronizado); corrija no consumidor.
+
+### Tipos de seleção (catálogo — qual usar quando)
+
+Fonte: `src/docs/pages/components/SelectDoc.tsx` (Seção 01, **9 tipos**). Só `Select` é primitive governado; os outros são padrões demonstrados na doc (implementados localmente na página) que os apps replicam.
+
+| Cenário | Tipo |
+| --- | --- |
+| 3–15 opções | `Select` |
+| 15+ opções ou precisa buscar | `Autocomplete` |
+| N opções simultâneas | `Multi-select` |
+| Lista sempre visível, múltipla | `Checkbox` |
+| Lista sempre visível, exclusiva | `Radio` |
+| Sim/Não binário | `Toggle` (5 estilos) |
+| Poucas opções visuais, todas à vista | `Chip Select` (pílulas, sem dropdown) |
+| **Barra de filtros / toolbar** | **`Chip Filtro`** |
+| 2–4 modos de visualização | `Segmented` |
+
+**`Chip Filtro`** (novo na v0.11.16, busca na v0.11.19) — botão fechado `Rótulo: Valor` que abre dropdown com radio. Visualmente é chip (padding `7px 12px`, `32.5px` de altura, borda 1px, `radius 8`, fonte 11px/600); comportamento é de `Select`. Aberto: borda `--color-primary` + `box-shadow 0 0 0 2px {primary}1F`. Dropdown tem **campo de busca fixo no topo** (autofoco ao abrir, filtro case-insensitive por substring, estado vazio `Nenhum resultado para "X"`) e lista com `maxHeight: 220 / overflowY: auto`. Uso exclusivo em filtro/toolbar — em formulário use `Select`; se as opções devem ficar todas visíveis ao mesmo tempo, use `Chip Select`.
+
+> Divergência proposital: o `ChipSelect` real do Governança BI (e o de `DrawerDoc.tsx`) **não** tem busca, só radio. A busca é uma evolução isolada do `Chip Filtro` do DS-FIPS.
 
 ## Tabs, Table, Dialog, Drawer, Tooltip, Progress
 
@@ -144,11 +243,206 @@ Fontes:
 Direção de uso:
 
 - `Tabs`: navegação secundária e troca de contexto dentro da tela
-- `Table`: listagem operacional densa, com wrapper card e hover de linha
+- `Table`: listagem operacional densa, com wrapper card e hover de linha. Sistema de densidade (`compact|normal|comfortable`) + toggles de aparência (`zebra`, `verticalBorders`, `stickyHeader`, `wrapText`) e `framed`, todos via props propagadas por context. Hook `useTableDensity()` deixa descendentes (Badge) auto-ajustarem. API completa, métricas por densidade, `AdminTableColumnMenu`/`Pagination`/`SortHeader` e persistência em `localStorage`: ver **Data Listing → Tabela canônica** em `patterns.md`
 - `Dialog`: ações focadas, filtros avançados em desktop, confirmação
 - `Drawer`: detalhes e fluxos laterais, principalmente em tablet/mobile
 - `Tooltip`: dica curta; requer `TooltipProvider`
 - `Progress`: status numérico e andamento visual
+
+### Dialog/Modal — componente governado
+
+**Fonte real: `src/components/ui/Modal.tsx`** — exporta `Modal` + `ModalFooter`, ambos reexportados pela library (`@fips-app/ds-fips`). É construído sobre `Dialog`/`DialogContent`/`DialogHeader`/`DialogTitle`/`DialogDescription`/`DialogClose` de `src/components/ui/dialog.tsx` (não confundir com o painel utilitário neumórfico do `ExportModal` legado, que é outra família visual, `eslint-disable` no topo).
+
+**`Modal` — props (todas de `ModalProps`, sem `className` visual em consumidor — `governance/no-visual-overrides` cobre `Button`/`Input`/etc., não `Modal`, mas o espírito é o mesmo: aparência vem das props, não de classes soltas):**
+
+| Prop | Tipo | Default | Efeito |
+|---|---|---|---|
+| `open` | `boolean` | — | obrigatório |
+| `onOpenChange` | `(open: boolean) => void` | — | obrigatório — **não** `onClose` |
+| `title` | `ReactNode` | — | vira `DialogTitle` |
+| `description` | `ReactNode` | — | vira `DialogDescription`, abaixo do título |
+| `children` | `ReactNode` | — | corpo; um `<ModalFooter>` entre os filhos é extraído e renderizado fixo embaixo (não precisa ser o último) |
+| `size` | `'sm'\|'md'\|'lg'\|'xl'\|'2xl'\|'3xl'\|'full'\|'workflow'` | `'md'` | `max-w-{sm..3xl}` / `max-w-4xl` (`full`) / `max-w-[900px]` (`workflow`) — nunca `className="max-w-*"` |
+| `headerIcon` | `LucideIcon` | — | componente do ícone (`headerIcon={UserRound}`, não JSX). Sem ícone o modal sai fora do padrão |
+| `hero` | `boolean` | `false` | header institucional (gradiente gov 135°, texto branco, close translúcido) em vez do header branco simples com borda |
+| `eyebrow` | `ReactNode` | — | rótulo dourado uppercase acima do título — **só tem efeito com `hero`** |
+| `noPadBody` | `boolean` | `false` | remove `px-6 py-5` do corpo; o conteúdo controla o próprio espaçamento (usado por conteúdo full-bleed, ex. tabela dentro do modal) |
+| `showCloseButton` | — | — | existe no tipo mas **não é lido** pelo componente — o X é decidido internamente por `!hero` (hero sempre tem X próprio; não-hero delega ao X default do `DialogContent`) |
+| `layer` | `number` | — | existe no tipo, **não usado** no corpo do componente hoje |
+
+**`ModalFooter` — props:** `children` (botões), `className`, `hint` (texto de apoio à esquerda — se ausente, um spacer ocupa o lugar pra empurrar os botões à direita). Border-top + fundo `--color-surface-muted`/70, `px-6 py-4`.
+
+**Anatomia do header `hero`** (gradiente `linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 60%, #001A4A 100%)`): tile de ícone `44×44px rounded-[10px]` com gradiente glass translúcido (branco 14%→6%→azul 22%) + borda `white/16`, eyebrow `11px/600/tracking-[0.14em] uppercase` cor `--color-accent-strong`, título branco `21px/700` Saira Expanded, descrição `white/65` `12px`, close `32×32 rounded-lg` `top-3.5 right-3.5` `bg-white/8` → hover `white/18`. Radius do modal inteiro: assimétrico `12px 12px 12px 24px` (assinatura FIPS) via `DialogContent`, não `rounded-2xl` uniforme.
+
+**Anatomia do header não-`hero`:** `DialogHeader` com borda inferior, ícone (se houver) em círculo `40×40` `bg-[var(--color-fips-blue-200)]/60` `text-[var(--color-primary)]`, título `text-lg` cor de texto padrão (não branco).
+
+**Regra:** `eyebrow` nunca repete palavra do título (ex.: "Atribuição" + "Atribuir responsável" é redundante — remover o eyebrow; "Dashboard" + "Movimentação de Pátio" é válido porque não repete).
+
+```tsx
+import { Modal, ModalFooter, Field, FieldLabel, Input, Button } from '@fips-app/ds-fips'
+import { UserRound } from 'lucide-react'
+
+<Modal open={open} onOpenChange={setOpen} hero headerIcon={UserRound}
+  eyebrow="Requisição" title="Atribuir responsável"
+  description="Selecione o colaborador e tipo de atribuição." size="lg">
+  <Field density="compact">
+    <FieldLabel required>Responsável</FieldLabel>
+    <Input density="compact" placeholder="Nome do colaborador" />
+  </Field>
+  <ModalFooter hint="Você poderá editar depois.">
+    <Button variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
+    <Button variant="success">Salvar atribuição</Button>
+  </ModalFooter>
+</Modal>
+```
+
+**Gaps conhecidos do componente real (não invente prop pra cobrir — são lacunas, não documentação incompleta):**
+
+- **Não existe `tone`/variante de cor sólida.** `hero` é binário: gradiente institucional ou header branco simples. Não há prop pronta pra faixa sólida verde (confirmação) / vermelha (destrutivo) / laranja (alerta) — hoje quem precisa disso reimplementa o header na mão (ver "Não faça" abaixo). Se for construir esse caso, evolua `Modal.tsx` primeiro (prop nova, ex. `tone?: 'success'|'danger'|'warning'`) em vez de remontar a casca no consumidor.
+- **Sem JunctionLines no header `hero`.** O preset `ModalHeroJunctionLines` (`src/components/icons/JunctionLines.tsx`) existe especificamente pra isso — o comentário no próprio arquivo diz "compartilhada com o `<Modal hero>`" — mas `Modal.tsx` não o importa nem renderiza. A decoração de trilhos só aparece em componentes que remontam o header na mão (`ChangelogModal`, `ExportPreviewModal`).
+
+**Não faça — reimplementações locais que existem hoje (dívida, não padrão a copiar):** `src/docs/pages/components/DialogDoc.tsx` tem uma função local `Modal` (props `onClose`/`headerBg`/`width`/`icon`, API diferente da real) usada em 6 das variantes do playground (Confirmação, Destrutivo, Alerta, Informativo, Formulário, Lista); `ChangelogModal.tsx`, `ExportPreviewModal.tsx`, `BuscarPessoaModal.tsx` e `BuscarUsuarioModal.tsx` também remontam `Dialog`/`DialogPrimitive` na mão em vez de compor `<Modal>`/`<ModalFooter>`. Nenhum desses é referência de como consumir o componente — são candidatos a migração, não exemplo.
+
+> **Por que os `Buscar*Modal` remontam à mão (contexto, não desculpa):** o `<Modal>`/`DialogContent` do catálogo hoje é shadcn/Tecnopano — card `rounded-2xl` + `bg-gradient-to-br #fafafa→#e8e8ec` + ícone do header **branco**. O padrão FIPS aprovado (NDM/OPA/QLP) é card **`rounded-[12px_12px_12px_24px]` + surface plano** + faixa gov com **ícone âmbar** (`var(--color-accent)`). Como o `<Modal>` não produz esse visual, os modais de busca remontam Radix cru pra bater com o FIPS. **Correção canônica:** alinhar o `DialogContent` (`src/components/ui/dialog.tsx`) ao card FIPS (raio assimétrico + surface, ícone âmbar no `hero`) e então fazer os `Buscar*Modal` **comporem `<Modal hero>`** em vez de remontar.
+
+### Modal "Novidades do Sistema" (Changelog)
+
+Modal real de produto (não é exemplo de playground) — acionado pelo item **Versão** do rodapé do sidebar (ver `patterns.md` → Application Shell → Sidebar → rodapé, item 4).
+
+Fontes: `src/components/layout/ChangelogModal.tsx` (componente) + `src/docs/data/changelog.ts` (fonte única de dados, tipo `ChangelogVersion[]` com `entries: {type, description}[]`) + `src/docs/pages/ChangelogPage.tsx` (timeline em `/docs/changelog`, consome a **mesma** fonte).
+
+Anatomia:
+
+- **Header**: canônico (acima) — eyebrow `"Versão {CURRENT_VERSION}"`, título fixo "Novidades do Sistema", ícone `Sparkles` âmbar sobre `GOV_GRAD`.
+- **Corpo** (rolável, `max-h-[85vh]` no modal): por versão, título + `v{versão} • {data pt-BR}`; lista de mudanças em cards `p-2.5`, `rounded-lg`, cor por `type`:
+
+  | `type` | Ícone | Rótulo | Cor (tokens semânticos, `/10` bg + `/25` border) |
+  |---|---|---|---|
+  | `feature` | `Sparkles` | Novidade | `--color-success` |
+  | `improvement` | `Wrench` | Melhoria | `--color-secondary` / `--color-primary` |
+  | `fix` | `Bug` | Correção | `--color-danger` |
+  | `breaking` | `Rocket` | Importante | `--color-accent-strong` |
+
+- Só a versão mais recente aparece por padrão; botão texto "Ver versões anteriores" expande o histórico completo.
+- **API real: só `{ open, onOpenChange }`.** Não existem props `changelog`/`currentVersion` — as versões vêm sempre de `CHANGELOG` (`src/docs/data/changelog.ts`), não são configuráveis.
+- **Footer**: `Button variant="primary" size="lg" className="w-full"` — "Entendi, vamos lá!" (fecha o modal).
+- **Largura**: `max-w-xl` (576px) — mais larga que o modal padrão (`max-w-lg`/512px) por ter listas de texto mais longas.
+
+Não faça:
+
+- duplicar os dados do changelog — sempre importar de `src/docs/data/changelog.ts`, nunca criar array local (aconteceu em `ChangelogPage.tsx` antes de v0.5.5, ficou defasado)
+- usar cores Tailwind cruas nos cards por tipo (`bg-green-100`, `text-red-700` etc. — isso vem do modelo de referência do Governança TI/Suprimentos, mas no DS-FIPS é sempre token semântico + variante `dark:`)
+- auto-abrir por `localStorage` a cada versão nova — neste DS o gatilho é **só** o clique no botão Versão, sem popup intrusivo automático
+
+## ExportPreviewModal
+
+Fonte: `src/components/composites/ExportPreviewModal.tsx` · canônico Tecnopano `ExportPreviewModal.tsx`
+
+Modal grande de exportação: **header hero gov-gradient** (mesma anatomia canônica do `ChangelogModal`/`Modal` — âmbar, eyebrow "EXPORTAÇÃO", JunctionLines, título dinâmico, close/Tela cheia translúcido-branco) · segmented **Tudo / Tabela / Expandida** · chips de colunas (toggle + drag) · preview · footer Cancelar / Imprimir / PDF / Excel.
+
+Header renderizado com `showCloseButton={false}` no `DialogContent` (que mantém a faixa azul 3px + grain próprios) e uma faixa gov-gradient full-bleed por cima (`-mx-6 -mt-6` cancelando o padding do `DialogContent`, clipada pelos cantos arredondados do painel via `overflow-hidden` do ancestral — **não precisa de radius próprio**). Usa `DialogPrimitive.Title`/`DialogPrimitive.Description` crus (não os wrappers `DialogTitle`/`DialogDescription` governados, que têm cor fixa incompatível com fundo escuro) — mesma técnica do `ChangelogModal`.
+
+**Rodapé — cada botão aparece se a callback correspondente for passada** (não depende mais de `intent`, que agora só define o título/ícone default do header): `onPrint` → Imprimir (outline); `onExportPdf` → PDF (**danger/vermelho**); `onExportExcel` → Excel (**successStrong/verde escuro**, rótulo "Excel" — não "Planilha"). Um consumidor pode passar as 3 para mostrar tudo (ex.: playground `DialogDoc.tsx`) ou só 1-2 pra manter um fluxo focado.
+
+**Família Modal** — demos em:
+- botões Excel/PDF em `/docs/patterns/data-listing`
+- botão "Exportação" do playground de `/docs/components/dialog`
+
+```tsx
+<ExportPreviewModal
+  open={open}
+  onOpenChange={setOpen}
+  columns={cols}
+  tableColumnKeys={[...]}
+  expandedColumnKeys={[...]}
+  data={rows}
+  onPrint={(keys, layout) => {}}
+  onExportPdf={(keys, layout) => {}}
+  onExportExcel={(keys, layout) => {}}
+/>
+```
+
+## ExportButtons (par de exportação)
+
+Fonte: `src/components/composites/ExportButtons.tsx` · ícones `src/components/icons/FileIcons.tsx` · demo: `src/docs/pages/patterns/DataListingDemo.tsx`
+
+Par de ações no fim da toolbar de listagem: dois botões **32.5×32.5 só-ícone**, cada um tintado pela cor da extensão (hover na mesma cor, suave):
+
+- **Excel** — ícone verde Office `#1D6F42`; `aria-label="Exportar para Excel (.xlsx)"`
+- **PDF** — ícone vermelho (`--color-danger`); `aria-label="Exportar para PDF (.pdf)"`
+
+API:
+
+```tsx
+import { ExportButtons } from '@fips-app/ds-fips'
+
+<ExportButtons onExcel={() => exportXlsx(rows)} onPdf={() => exportPdf(rows)} />
+```
+
+Regras:
+
+- sempre o par, sempre à direita da toolbar
+- só-ícone com `title` + `aria-label` (sem rótulo de texto)
+- não trocar as cores: verde = Excel, vermelho = PDF — é convenção de extensão, não decoração
+- botões nativos no composite (não `Button` + tint via `className` — governance)
+
+## ListingKpiRow + StatsCard clicável
+
+Fonte: `src/components/composites/ListingKpiRow.tsx` · `StatsCard` com `onClick` / `selected` / `disabled`
+
+Bloco **Indicadores rápidos**: faixa de `StatsCard` clicáveis no `panelHeader` do card da toolbar (borda inferior, acima de filtros/busca/export). Clique no card filtra a tabela; “Limpar filtro” limpa o foco.
+
+> **v0.11.24 — saiu da demo, continua na library.** O bloco foi removido da toolbar de `/docs/patterns/data-listing` (a toolbar de lá agora demonstra só filtros/busca/período + Excel/PDF). `ListingKpiRow` e `StatsCard` seguem exportados e são o padrão recomendado quando a listagem precisa de KPIs clicáveis — só não há mais demo viva deles nessa página. O bloco de KPI cards com sparkline (acima da toolbar) é outro componente e continua na página.
+
+## Busca de pessoa/usuário — BuscarPessoaModal / BuscarUsuarioModal
+
+Modal de escolher pessoa/usuário. Fontes: `src/components/composites/BuscarPessoaModal.tsx` (responsável no Data Listing) e `BuscarUsuarioModal.tsx` ("Entrar como usuário…" do menu Minha Conta). Anatomia portada verbatim do OPA-Gestão (`composites/Modal.tsx`, tone gov), que herdou do NDM/QLP. Spec: `plans/spec-buscar-responsavel-modal.md`.
+
+Anatomia (comum aos dois):
+
+- **Card FIPS**: `rounded-[12px_12px_12px_24px]` (canto inferior-esquerdo 24) + `bg-[var(--color-surface)]` plano + `shadow-[var(--shadow-elevated)]`, `max-w-md`, `max-h-[85vh] flex flex-col overflow-hidden`. (Remonta Radix cru — ver dívida na seção Dialog/Modal acima.)
+- **Header gov**: faixa `var(--fips-banner-content-bg)` (`px-6 py-5 pr-14`), tile do ícone 44×44 (`rounded-[10px]`, bg accent 10% / borda accent 19%) com ícone **âmbar** `var(--color-accent)` (NÃO branco); título branco 21px (Saira); **subtítulo visível** `text-white/65` (`Dialog.Description`, não sr-only); X glass branco.
+- **Campo de busca FIXO** (`shrink-0 px-6 pt-5 pb-3`): input com lupa à esquerda, `autoFocus`, `h≈38 radius 8 border 1.5px`.
+- **Lista ROLÁVEL** (`fips-scroll flex-1 space-y-0.5 overflow-y-auto px-6 pb-6`): o `pb-6` dá o padding inferior **dentro** da rolagem (último item respira ao rolar). Linha = `button flex items-center gap-3 rounded-xl px-2 py-2` com `PessoaAvatar`/`<img>` (foto → iniciais). Vazio: "Ninguém encontrado.".
+
+Diferenças:
+
+| | `BuscarPessoaModal` | `BuscarUsuarioModal` |
+|---|---|---|
+| busca | nome / cargo / matrícula | nome / e-mail (sem acento, `normalize NFD`) |
+| sem busca | **só quem tem equipe** (`qtd_lideranca > 0`, ordenado por liderança) | todos |
+| 2ª linha da row | `cargo · área` + matrícula à direita | e-mail + **papel colorido** à direita |
+| hover da row | `bg-[var(--color-surface-muted)]` | `bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]` |
+
+**Dados são MOCK fictício de propósito** — no OPA/QLP a lista vem da API com CS/matrícula reais, que é dado sensível e não pode ir pro catálogo público.
+
+## Scrollbar fina — `.fips-scroll`
+
+Utility em `src/styles/globals.css` para listas roláveis em **superfícies claras** (modais, popovers). Barra **fina, sem botões de seta** (`::-webkit-scrollbar-button{display:none}`), thumb cinza translúcido flutuante (`color-mix(var(--color-fg-muted) …%, transparent)`, `border: 3px solid transparent; background-clip: padding-box`), `scrollbar-width: thin`. Não confundir com `.sidebar-scroll` (thumb **branco**, só pra sidebar escura) nem `.no-scrollbar` (esconde).
+
+## CircularCommandMenu / RowActionsMenu
+
+Fonte: `src/components/composites/CircularCommandMenu.tsx` · `RowActionsMenu.tsx` · CSS `.cmd-glass*` / `.fips-row-action` em `globals.css`
+
+Menu radial (portal + órbita + teclado). **Peer dependency:** `framer-motion` (>=11). Doc: `/docs/components/circular-command-menu` — item do sidebar chamado **"Ações"** (renomeado de "Circular Menu" na v0.11.31).
+
+Um único componente, dois presets:
+
+- **`RowActionsMenu`** — não é componente separado: é o `CircularCommandMenu` com trigger de **28px** pra caber numa célula de tabela (coluna Ações da listagem).
+- **FAB** — o mesmo componente com o trigger padrão de **56px**, para ação isolada de página.
+
+`ariaLabel` (v0.11.31) tem default `"Ações da linha"`, correto pro uso em tabela. **Fora de linha de tabela (FAB), passe `ariaLabel` próprio** — ex.: `ariaLabel="Ações rápidas"`.
+
+```tsx
+<RowActionsMenu
+  rowId={row.id}
+  radius={56}
+  actions={[
+    { key: 'edit', label: 'Editar pedido', icon: <Pencil />, onClick: () => {} },
+    { key: 'delete', label: 'Excluir', icon: <Trash2 />, danger: true, onClick: () => {} },
+  ]}
+/>
+```
 
 ## PageHero
 
@@ -163,7 +457,7 @@ export const PAGE_HERO_DEFAULT_DECORATION = '/backgrounds/app-shell-home-trains.
 Uso:
 
 ```tsx
-import { PageHero } from 'ds-fips'
+import { PageHero } from '@fips-app/ds-fips'
 
 <PageHero>
   <div className="px-8 py-10">
@@ -178,8 +472,164 @@ Comportamento:
 - foto/trilho sutil à direita por padrão
 - fallback opcional para `showTrainSilhouette`
 
-## FipsLogo
+## HeroAtalho e HeroFileira
 
-Fonte: `src/components/brand/FipsLogo.tsx`
+Fonte: `src/components/composites/HeroAtalho.tsx` e `HeroFileira.tsx`
 
-Use em sidebar, shell de aplicação e cabeçalhos institucionais. Não aplique distorção, sombra, transparência arbitrária ou recoloração fora das versões aprovadas.
+Atalhos do hero da Home. `HeroAtalho` parado mostra só o ícone (30px); no hover ou no foco abre e mostra o nome dentro do botão. Cor, sombra e shimmer vêm de `docHeaderChrome`: nenhuma cor nova.
+
+Para vários atalhos, use `HeroFileira`: um aberto por vez, o primeiro é o principal e fica aberto no repouso, apontar outro fecha o principal, sair da fileira volta a ele.
+
+```tsx
+import { HeroFileira } from '@fips-app/ds-fips'
+
+<HeroFileira
+  label="Atalhos da Home"
+  atalhos={[
+    { id: 'painel', icon: ClipboardList, label: 'Painel de Ações', href: '/painel' },
+    { id: 'config', icon: Settings, label: 'Configurações', href: '/configuracoes' },
+  ]}
+/>
+```
+
+`data-*` e `aria-*` de `HeroAtalho` e de cada item da `HeroFileira` chegam ao `<a>`/`<button>` (ex. `'data-tutorial': 'novo'` como alvo de tutorial). `aria-label` e `data-state` são do componente. `pressionado` (boolean) vira `aria-pressed` no `<button>`, para o atalho que liga e desliga um filtro; sem `href`, sem mudar o visual. `id`, `className`, `target` e `rel` ainda não passam.
+
+Armadilha: o estado e o "saiu" moram na fileira, nunca em cada atalho. Com o `onMouseLeave` em cada um, o vão de 8px entre os botões zera o estado por um quadro e o principal reabre no meio do caminho. Pelo teclado, o blur testa o `relatedTarget`. No Safari esse alvo vem nulo no Tab entre irmãos e ao clicar (o Safari não foca botão no clique), e a fileira espera um instante; com o ponteiro dentro, o blur não mexe no atalho apontado. Sair com o mouse não derruba um atalho que ainda tem foco de teclado, mas foco vindo de clique do mouse não segura nada (só `:focus-visible` conta).
+
+## AbasDeSecao
+
+Fonte: `src/components/composites/AbasDeSecao.tsx`
+
+Faixa de abas de seção, no topo (`posicao="topo"`, padrão) ou fixa acima da barra de navegação inferior (`posicao="rodape"`), para o celular: no topo ela sai da tela assim que a página rola.
+
+```tsx
+import { useState } from 'react'
+import { AbasDeSecao } from '@fips-app/ds-fips'
+
+const [aba, setAba] = useState('modo')
+
+<>
+  <main className="abas-secao-reserva">…</main>
+  <AbasDeSecao
+    posicao="rodape"
+    label="Configurações"
+    abas={[{ id: 'modo', label: 'Modo' }, { id: 'tema', label: 'Tema' }]}
+    ativa={aba}
+    onSelecionar={setAba}
+  />
+</>
+```
+
+Props: `abas` (`{ id, label, icon?, href? }`), `ativa` (id), `onSelecionar?`, `posicao?`, `label?`, `className?`. Aba com `href` vira `<a>` e recarrega a página sem router; sem `href` é `<button>`.
+
+**Sem `--barra-inferior-altura` a faixa some.** O app publica a altura da própria barra. Sem ela a faixa fica em `bottom: 0`, por baixo da barra. Faixa fixa no mesmo vão (por exemplo "registro na fila"): publicar a altura em `--abas-secao-empilha`. A altura da faixa é `--abas-secao-altura`, que vale `max(39px, var(--alvo-toque))` (39px no escritório, 44px ou 48px no celular), e a página reserva o espaço com `abas-secao-reserva`, que substitui a reserva da barra e não soma: tire a reserva do app do MESMO elemento, porque uma regra sem camada do app vence a do pacote. Ancestral com `transform` vira o bloco de contenção do `fixed`. Se o app já reserva a altura da faixa de estado no corpo, não some a reserva duas vezes.
+
+Armadilhas: o traço da aba ativa e a separação ficam dentro da caixa da faixa (o `overflow-x` recortaria o que saísse) e trocam de lado juntos com a posição; a altura nunca vai escrita à mão em dois lugares.
+
+## PageHeader
+
+Fonte: `src/components/composites/PageHeader.tsx` (+ `banner-shared.tsx`; estilos em `.fips-page-header` de `src/styles/globals.css`)
+
+Banner de página (Banner de Conteúdo): um por tela, com o h1. Não confundir com `PageHero`, que é a faixa de módulo e de Home.
+
+```tsx
+import { PageHeader, Button } from '@fips-app/ds-fips'
+
+<PageHeader
+  icon={<FileDown />}
+  title="Sistema de Requisições"
+  description="Gestão de compras e requisições do módulo Suprimentos"
+  actions={<Button variant="accent" size="sm">Nova solicitação</Button>}
+  actionsProps={{ 'data-tour-step': 'banner-acoes' }}
+  data-tour-step="banner"
+/>
+```
+
+Props: `title` (vira o h1), `description`, `icon`, `eyebrow` (rótulo de seção em texto, sem pílula), `info` (ao lado do título), `actions` (botões como filhos diretos, sem div em volta; com mais de dois a linha quebra), `actionsProps` (só `data-*`, vai para o slot de ações), `stats` (`{ label, value, dotColor? }[]`), `headingLevel` (1 a 6, padrão 1), `edge` (`card` ou `bleed`), `compact` (força a medida estreita; só para o apelido). `data-*`, `aria-*`, `className`, `style`, `id` e `ref` vão para a raiz.
+
+Valores fixos (todos por token, nenhum token novo):
+
+- fundo `var(--fips-banner-content-bg)`; sombra e borda dos tokens `--fips-banner-content-*`; trilhos de 4 caminhos na opacidade `--fips-banner-junction-opacity` (0,12 no claro, 0,04 no escuro)
+- a medida segue a largura do próprio cartão (container query de 560px, sem JavaScript): 560px ou mais, raio 12/12/12/24, padding 22/26, tile 44 (raio 11), título 21px, descrição 12px; abaixo, raio 10/10/10/18, padding 12, tile 34 (raio 9), título 18px, descrição 11,5px e as ações vão para a última linha, lado a lado, com a mesma largura
+- tile com fundo e borda a 10% e 19% de `--color-accent`; título em `font-heading`, 700, branco; descrição a 67% de branco, teto de 840px
+- `edge="bleed"` tira o raio abaixo de 560px; a margem lateral é do pai
+
+Regras: a página tem um h1 só (nos outros banners, `headingLevel={2}`); não sobrescreva cor, raio ou medida por classe do app; o componente ocupa a largura do pai (não o ponha em flex em linha). `PatternPanelHero` continua exportado como apelido, com as props de antes (`subtitle`, `badge`, `badgePill`, `action`, `stats`, `compact`, `dataTutorial`). Cópia para app sem o pacote: `exports/pattern-panel-hero` (leva `page-header.css`). Conferência: `node scripts/medir-banner.mjs <url>`.
+
+## Modos de uso (`data-modo`)
+
+Fonte: `src/styles/globals.css`.
+
+App de campo tem dois modos: `data-modo="normal"` (escritório) e `data-modo="facil"` (pátio, com luva). O atributo vai no `<html>` ou em qualquer contêiner. Sem ele vale o normal, e nenhum token resolve vazio.
+
+Tokens `--modo-*` (mesmos nomes e valores do app de campo): `--modo-alvo-min` (35px e 48px), `--modo-texto-campo` (13px e 14px), `--modo-texto-base`, `--modo-texto-rotulo`, `--modo-texto-titulo`, `--modo-espaco`, `--modo-borda-largura` (1px e 2px), `--modo-borda-cartao`, `--modo-sombra-cartao`, `--modo-raio-controle`, `--modo-raio-cartao`, `--modo-peso` (600 e 700).
+
+`--alvo-toque` é o alvo de toque do aparelho: o token do modo acima de 767px e `max(44px, --modo-alvo-min)` até 767px (44px normal, 48px fácil). Use `min-height: var(--alvo-toque)` em controle de toque.
+
+**Armadilha:** propriedade que lê outra (`--alvo-toque` lê `--modo-alvo-min`) resolve no elemento onde foi declarada. `--alvo-toque` e `--abas-secao-altura` ficam declaradas junto de cada `[data-modo]`; declarar só em `:root` faz um contêiner interno em modo fácil herdar o 35px da raiz.
+
+## FipsLogo e marca do menu (sidebar header)
+
+> **Atenção — são duas coisas diferentes com o mesmo "logo".** O componente `FipsLogo` e a marca que aparece no cabeçalho da sidebar **não são o mesmo elemento**. A sidebar real usa um `<img>` inline, **não** o componente `FipsLogo`. Confundir os dois põe um chip branco numa superfície azul-escura — fora do padrão. (Foi a causa de uma rodada longa de retrabalho no Governança BI.)
+
+### Marca do menu — padrão canônico (use ESTE na sidebar)
+
+Fonte real: `src/components/layout/DocsNeuSidebar.tsx` (cabeçalho, ~l.595–649). A marca é um `<img>` inline **branco, transparente, direto sobre o azul-escuro da sidebar (`#002a68`) — sem tile/chip branco, sem fundo, sem sombra.** Dois assets, trocados por estado:
+
+| Estado | Asset | Geometria |
+| --- | --- | --- |
+| Aberto (expandido) | `/appfips-logo.png` — lockup "App ◫ FIPS", **quadrado 1024×1024 com respiro interno** | `height:52`, `width:auto`, `maxWidth:100`, `minWidth:60`, `objectFit:contain`, `objectPosition:left center` |
+| Colapsado (rail) | `/appfips-mark-collapsed.png` — só o símbolo caixa | `36×36`, `objectFit:contain` |
+
+`alt="App FIPS"` nos dois; `backgroundColor:transparent` / `background:none` sempre.
+
+Ao lado da marca (só no aberto) vem o **nome do módulo** — não faz parte do lockup, é um `<span>` irmão:
+
+- wrapper: `flex items-center`, `gap: 2` (aberto) / `0` (colapsado), `width:100%` (aberto) / `auto`, `justifyContent: flex-start` (aberto) / `center`.
+- texto: `fontFamily: F.title` (**Saira Expanded** / `var(--font-heading)`), `fontWeight:700`, `fontSize:16`, `lineHeight:1.2`, `letterSpacing:0.03em`, cor `theme.textActive`, `whiteSpace:nowrap` + `ellipsis`.
+
+```tsx
+<div className="flex items-center" style={{ gap: collapsed ? 0 : 2, width: collapsed ? 'auto' : '100%', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+  <img
+    src={collapsed ? '/appfips-mark-collapsed.png' : '/appfips-logo.png'}
+    alt="App FIPS"
+    style={collapsed
+      ? { width: 36, height: 36, objectFit: 'contain', flexShrink: 0, background: 'none' }
+      : { height: 52, width: 'auto', maxWidth: 100, minWidth: 60, objectFit: 'contain', objectPosition: 'left center', flexShrink: 0, background: 'none' }}
+  />
+  {!collapsed && (
+    <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, lineHeight: 1.2, letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>
+      {nomeDoModulo}
+    </span>
+  )}
+</div>
+```
+
+> Cada app troca só `nomeDoModulo` (DS-FIPS = "Design System"; Governança BI = "Governança BI"). Marca, assets e geometria ficam idênticos.
+
+### Componente `FipsLogo` — divergência conhecida (NÃO usar na sidebar)
+
+`src/components/brand/FipsLogo.tsx` é um **chip branco**: `flex h-8 w-8 rounded-lg bg-white p-0.5` com `/fips-logo.png` (lockup **horizontal**). É a versão para **fundo claro** (cabeçalho institucional sobre superfície branca). **Não usar no cabeçalho da sidebar escura** — o chip branco + lockup horizontal espremido fogem do padrão. Para sidebar, use o `<img>` inline acima.
+
+### Gotchas (erros reais já cometidos)
+
+- **Não espremer lockup horizontal em slot quadrado.** `/fips-logo.png` é ~1.93:1; num chip 36×36 vira borrão ilegível. O asset de menu aberto é o `/appfips-logo.png` **quadrado** (1024×1024) com respiro interno — é o respiro do próprio PNG que dá o espaçamento ao nome. Cortar o lockup "tight" mata esse respiro e ele cola no texto.
+- **Sidebar escura = marca branca transparente, nunca chip branco.** As sidebars FIPS são `#002a68`; `bg-white`/tile ali quebra o padrão.
+- **Aberto = lockup + nome; colapsado = só símbolo.** Não trocar por símbolo no aberto, nem deixar "FIPS" duplicado.
+- Não aplicar distorção, sombra, recoloração ou transparência arbitrária fora das versões aprovadas.
+
+> Marca no **trilho mobile do header** (não a sidebar) é um terceiro asset e comportamento — ver `patterns.md` → Application Shell → Header → `DocHeaderPageTrail`.
+
+## BrandLoader (Motion) — v0.12.0
+
+Loader institucional da marca. A logo FIPS extrudada em 3D nasce **branca** com o contorno já nas cores da marca (símbolo `#7A818B`, wordmark `#004B9B`) e recebe a cor **da esquerda para a direita** conforme a tela carrega.
+
+- Import: `import { BrandLoader } from '@fips-app/ds-fips'`
+- Props: `size` ('sm' 96px | 'md' 180px | 'lg' 280px | 'splash' 420px) · `label` (aria) · `caption` (legenda visível) · `basePath` (default `/motion`)
+- Assets servidos de `/motion`: `fips-brandloader.webm` (VP9 com alfa, 56 KB), `fips-brandloader.apng` (fallback Safari, 165 KB), `fips-brandloader-static.png` (quadro final).
+- Duração 4 s a 24 fps; cor entra em 10% e fecha em 80% do ciclo.
+- `role="status"` + `aria-live="polite"`; sob `prefers-reduced-motion` mostra o quadro final estático.
+- **Não é SVG**: a fidelidade tipográfica do wordmark exige a arte oficial. Renderizado a partir de `Logo FIPS png.png`.
+- Usar em abertura do app, login, ação longa e explícita. **Não** usar em tabela carregando (ali vai skeleton), nem abaixo de 96 px, nem mais de um por tela.
+- **Padrão de uso** (abertura pós-login que pré-carrega os dados + loader em tabela pesada): ver `patterns.md` → "Loading — Abertura da marca (BrandLoader)".
+- Doc: `/docs/motion/brand-loader`

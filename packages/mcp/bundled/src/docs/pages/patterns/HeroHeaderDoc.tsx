@@ -1,15 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { ShieldCheck, AlertTriangle, ArrowUpFromLine, LayoutGrid } from 'lucide-react'
+import { ShieldCheck, AlertTriangle, ArrowUpFromLine, LayoutGrid, ClipboardList, Settings, Sparkles, Filter } from 'lucide-react'
 import { CodeExportSection } from '../../components/CodeExport'
+import { PlaygroundProvider, Copyable, CodePlayground } from '../../components/CodePlayground'
 import { RuleCards } from '../../components/RuleCards'
 import { Badge } from '../../../components/ui/badge'
-import { Button } from '../../../components/ui/button'
+import { HeroAtalho, HeroAtalhos } from '../../../components/composites/HeroAtalho'
+import { HeroFileira } from '../../../components/composites/HeroFileira'
 import { PageHero, PAGE_HERO_DEFAULT_DECORATION } from '../../../composites/PageHero'
 import { cn } from '../../../lib/cn'
 
 const HOME_BACKGROUND = '/backgrounds/app-shell-home-trains.png'
 
 // ─── Mini demo interativa ────────────────────────────────────────────────────
+
+/** Atalho que liga e desliga um filtro: `pressionado` anuncia o estado ao leitor de tela, sem mudar o visual. */
+function AtalhoLigaDesliga() {
+  const [ligado, setLigado] = useState(false)
+  return <HeroAtalho icon={Filter} label="Área atual" pressionado={ligado} onClick={() => setLigado((v) => !v)} />
+}
 
 function HeroHeaderDemo() {
   const [scrolled, setScrolled] = useState(false)
@@ -54,12 +62,10 @@ function HeroHeaderDemo() {
               <p className="mt-3 text-sm text-white/75 max-w-xs mx-auto">
                 Role a página para ver o cabeçalho transicionar de vidro para branco.
               </p>
-              <div className="mt-6 flex gap-3 justify-center">
-                <Button variant="accent" size="sm">Ação Primária</Button>
-                <Button variant="inverseOutline" size="sm">
-                  Secundária
-                </Button>
-              </div>
+              <HeroAtalhos className="mt-6">
+                <HeroAtalho icon={ClipboardList} label="Ação primária" variante="ouro" />
+                <HeroAtalho icon={Settings} label="Secundária" />
+              </HeroAtalhos>
             </div>
           </div>
 
@@ -91,12 +97,147 @@ function HeroHeaderDemo() {
   )
 }
 
-// ─── Código de referência ────────────────────────────────────────────────────
+// ─── Copyable code helpers (hardcoded hex, self-contained) ──────────────────
+
+function codeHeroHeaderGlass() {
+  return `// DS-FIPS — Hero Header Glass-to-White — Copy-paste ready
+import { useState, useRef, useEffect } from 'react'
+
+export function HeroWithAdaptiveHeader() {
+  const [scrolled, setScrolled] = useState(false)
+  const scrollRef = useRef(null)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const onScroll = () => setScrolled(el.scrollTop > 60)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <div ref={scrollRef} style={{ height: '100vh', overflowY: 'auto' }}>
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        height: 56, padding: '0 24px',
+        display: 'flex', alignItems: 'center',
+        transition: 'all 300ms ease',
+        ...(scrolled ? {
+          background: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(4px)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          color: '#333B41',
+        } : {
+          background: 'rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(12px)',
+          color: '#fff',
+        }),
+      }}>
+        <span style={{ fontFamily: "'Saira Expanded', sans-serif", fontWeight: 700, fontSize: 14 }}>App FIPS</span>
+      </header>
+
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(118deg, rgba(0,19,56,0.94) 0%, rgba(0,63,138,0.84) 44%, rgba(0,144,208,0.60) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 10, padding: '40px 24px 56px', textAlign: 'center' }}>
+          <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: 'rgba(246,146,30,0.95)', color: '#fff', fontSize: 12, fontWeight: 600 }}>
+            Sistema de Exemplo
+          </span>
+          <h2 style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginTop: 16, fontFamily: "'Saira Expanded', sans-serif" }}>
+            Hero com <span style={{ color: '#FDC24E' }}>Header Adaptativo</span>
+          </h2>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 12, maxWidth: 320, margin: '12px auto 0' }}>
+            Role a pagina para ver o cabecalho transicionar de vidro para branco.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
+            <button style={{ background: '#F6921E', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Acao Primaria</button>
+            <button style={{ background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Secundaria</button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: '#f3f6fb', padding: 24, minHeight: 300 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ height: 12, width: '33%', borderRadius: 6, background: '#E2E8F0', marginBottom: 8 }} />
+          <div style={{ height: 8, width: '66%', borderRadius: 6, background: '#F1F5F9' }} />
+        </div>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ height: 12, width: '40%', borderRadius: 6, background: '#E2E8F0', marginBottom: 8 }} />
+          <div style={{ height: 8, width: '55%', borderRadius: 6, background: '#F1F5F9' }} />
+        </div>
+      </div>
+    </div>
+  )
+}`
+}
+
+function codeHeroAtalhos() {
+  return `// DS-FIPS — Atalhos do hero da Home
+import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Sparkles, ShieldCheck, Filter } from 'lucide-react'
+import { HeroAtalho, HeroAtalhos } from '@fips-app/ds-fips'
+
+export function AtalhosDaHome() {
+  const navigate = useNavigate()
+  const [soAreaAtual, setSoAreaAtual] = useState(false)
+  return (
+    <HeroAtalhos label="Atalhos da Home">
+      <HeroAtalho icon={Sparkles} label="Explorar componentes" data-tutorial="novo" onClick={() => navigate('/docs')} />
+      <HeroAtalho icon={ShieldCheck} label="Governança" onClick={() => navigate('/docs/governance')} />
+      {/* Liga e desliga um filtro: pressionado vira aria-pressed (só no <button>, sem href). */}
+      <HeroAtalho icon={Filter} label="Área atual" pressionado={soAreaAtual} onClick={() => setSoAreaAtual((v) => !v)} />
+    </HeroAtalhos>
+  )
+}`
+}
+
+function codeHeroFileira() {
+  return `// DS-FIPS: fileira de atalhos do hero da Home
+import { useNavigate } from 'react-router-dom'
+import { ClipboardList, Settings } from 'lucide-react'
+import { HeroFileira } from '@fips-app/ds-fips'
+
+export function AtalhosDaHome() {
+  const navigate = useNavigate()
+  return (
+    <HeroFileira
+      label="Atalhos da Home"
+      atalhos={[
+        // data-* e aria-* do item chegam ao <a>/<button> (alvo de tutorial, por exemplo).
+        { id: 'painel', icon: ClipboardList, label: 'Painel de Ações', variante: 'ouro', 'data-tutorial': 'novo', onClick: () => navigate('/painel') },
+        { id: 'config', icon: Settings, label: 'Configurações', onClick: () => navigate('/configuracoes') },
+      ]}
+    />
+  )
+}`
+}
+
+function codePageHeroFaixa() {
+  return `// DS-FIPS — PageHero Faixa de Modulo — Copy-paste ready
+
+export function PageHeroFaixa() {
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #002A68 0%, #004B9B 100%)',
+      position: 'relative', overflow: 'hidden', borderRadius: 12,
+    }}>
+      <div style={{ padding: '32px 24px' }}>
+        <p style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.70)', margin: 0 }}>Exemplo</p>
+        <h3 style={{ fontSize: 20, fontWeight: 600, color: '#fff', marginTop: 4, fontFamily: "'Saira Expanded', sans-serif", margin: '4px 0 0' }}>Faixa de modulo (PageHero)</h3>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.80)', marginTop: 8, maxWidth: 448, margin: '8px 0 0' }}>
+          Gradiente institucional + imagem sutil a direita.
+        </p>
+      </div>
+    </div>
+  );
+}`
+}
 
 // ─── Página ──────────────────────────────────────────────────────────────────
 
 export default function HeroHeaderDoc() {
   return (
+    <PlaygroundProvider>
     <div style={{ minHeight: '100vh', background: 'var(--color-surface-muted)', fontFamily: "'Open Sans', sans-serif", color: 'var(--color-fg)' }}>
       {/* HEADER HERO */}
       <header style={{ background: 'linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 100%)', padding: '48px 40px 44px', position: 'relative', overflow: 'hidden' }}>
@@ -130,27 +271,170 @@ export default function HeroHeaderDoc() {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gov-azul-escuro)', margin: '0 0 12px', fontFamily: "'Saira Expanded', sans-serif" }}>PageHero — faixa de módulo (não é este padrão)</h2>
         <p style={{ fontSize: 14, color: '#7B8C96', marginBottom: 16, lineHeight: 1.55 }}>
           Produção, Governança e demais telas internas usam esta faixa azul padrão — não o header glass da
-          Home. O trem/trilhos vêm da mesma arte base ({PAGE_HERO_DEFAULT_DECORATION}).
+          Home. O trem/trilhos vêm da mesma arte base ({PAGE_HERO_DEFAULT_DECORATION}). Clique para copiar o código.
         </p>
-        <div className="max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border)] shadow-sm">
-          <PageHero>
-            <div className="px-6 py-8">
-              <p className="text-xs font-medium uppercase tracking-wide text-white/70">Exemplo</p>
-              <h3 className="mt-1 font-heading text-xl font-semibold text-white">Faixa de módulo (PageHero)</h3>
-              <p className="mt-2 max-w-md text-sm text-white/80">
-                Gradiente institucional + imagem sutil à direita. Detalhes em Padrão: Dashboard.
-              </p>
-            </div>
-          </PageHero>
-        </div>
+        <Copyable label="PageHero Faixa" code={codePageHeroFaixa()} preview={
+          <div style={{ background: 'linear-gradient(135deg, #002A68 0%, #004B9B 100%)', borderRadius: 12, padding: '24px 20px', color: '#fff', fontFamily: "'Saira Expanded', sans-serif", fontSize: 14 }}>
+            Faixa de Modulo (PageHero)
+          </div>
+        }>
+          <div className="max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border)] shadow-sm">
+            <PageHero>
+              <div className="px-6 py-8">
+                <p className="text-xs font-medium uppercase tracking-wide text-white/70">Exemplo</p>
+                <h3 className="mt-1 font-heading text-xl font-semibold text-white">Faixa de módulo (PageHero)</h3>
+                <p className="mt-2 max-w-md text-sm text-white/80">
+                  Gradiente institucional + imagem sutil à direita. Detalhes em Padrão: Dashboard.
+                </p>
+              </div>
+            </PageHero>
+          </div>
+        </Copyable>
       </section>
 
       {/* Demo interativa */}
       <section style={{ marginTop: 36 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gov-azul-escuro)', margin: '0 0 12px', fontFamily: "'Saira Expanded', sans-serif" }}>Demo interativa — role o conteúdo</h2>
-        <HeroHeaderDemo />
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gov-azul-escuro)', margin: '0 0 12px', fontFamily: "'Saira Expanded', sans-serif" }}>Demo interativa — role o conteúdo. Clique para copiar o código.</h2>
+        <Copyable label="Hero Header Glass" code={codeHeroHeaderGlass()} preview={
+          <div style={{ background: 'linear-gradient(135deg, #002A68, #004B9B)', borderRadius: 12, padding: '20px 16px', color: '#fff', fontFamily: "'Saira Expanded', sans-serif", fontSize: 13, textAlign: 'center' }}>
+            <span style={{ color: '#FDC24E' }}>Glass-to-White</span> Header
+          </div>
+        }>
+          <HeroHeaderDemo />
+        </Copyable>
       </section>
 
+      {/* Atalhos do hero */}
+      <section style={{ marginTop: 36 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gov-azul-escuro)', margin: '0 0 12px', fontFamily: "'Saira Expanded', sans-serif" }}>Atalhos do hero (HeroAtalho)</h2>
+        <p style={{ fontSize: 14, color: '#7B8C96', marginBottom: 16, lineHeight: 1.55 }}>
+          Os botões do hero da Home são atalhos. Parado, cada um mostra só o ícone, em 30px, no
+          estilo <code>inverseOutline</code>. No hover ou no foco pelo teclado ele abre e mostra o nome
+          dentro do botão, com o realce amarelo dos azulejos do header. O nome fica no HTML, sem
+          {' '}<code>title</code>. Mantenha os nomes e destinos que o app já tem. Passe o mouse ou use Tab
+          no exemplo. Clique para copiar o código.
+        </p>
+        <Copyable label="Atalhos do hero" code={codeHeroAtalhos()} preview={
+          <div style={{ background: 'linear-gradient(135deg, #002A68, #004B9B)', borderRadius: 12, padding: '20px 16px', color: '#fff', fontFamily: "'Saira Expanded', sans-serif", fontSize: 13, textAlign: 'center' }}>
+            HeroAtalho
+          </div>
+        }>
+          <div className="w-[640px] max-w-full overflow-hidden rounded-xl border border-[var(--color-border)] shadow-sm">
+            <PageHero>
+              <div className="px-6 py-8">
+                <HeroAtalhos label="Atalhos de exemplo">
+                  <HeroAtalho icon={Sparkles} label="Explorar componentes" data-tutorial="novo" />
+                  <HeroAtalho icon={ShieldCheck} label="Governança" />
+                  <HeroAtalho icon={Settings} label="Configurações" />
+                  <AtalhoLigaDesliga />
+                </HeroAtalhos>
+              </div>
+            </PageHero>
+          </div>
+        </Copyable>
+        <div className="mt-4 max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)]">
+                <th className="px-4 py-3 text-left font-semibold text-[var(--color-fg)]">Prop</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--color-fg)]">Uso</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--color-border)]">
+              {[
+                ['icon', 'Ícone Lucide mostrado sempre.'],
+                ['label', 'Nome que aparece ao abrir. Também é o nome para leitor de tela.'],
+                ['variante', 'Opcional. `ouro` no primário do hero; padrão `inverseOutline`. O realce no hover é igual nos dois.'],
+                ['href', 'Opcional. Com ele o atalho vira link <a> (recarrega a página). Apps com router usam `onClick`.'],
+                ['onClick', 'Opcional. Use para navegar pelo router do app.'],
+                ['aberto', 'Opcional. Definido, o atalho é controlado de fora e não guarda estado próprio. É o que a HeroFileira usa. Aparece como data-state="open" ou "closed".'],
+                ['aoApontar', 'Opcional. Chamado ao apontar ou focar, só quando controlado.'],
+                ['pressionado', 'Opcional. Estado ligado ou desligado anunciado ao leitor de tela (aria-pressed), para o atalho que liga e desliga algo, como um filtro. Não muda o visual. Só no <button>: com href é link e o valor é ignorado. Indefinido, nada é anunciado.'],
+                ['data-*, aria-*', 'Opcional. Chegam ao <a>/<button> renderizado, por exemplo data-tutorial="novo" como alvo de tutorial. aria-label (vem de label) e data-state (aberto ou fechado) são do componente e não mudam.'],
+                ['HeroAtalhos label', 'Nome da faixa (<nav>) para leitor de tela. Padrão "Atalhos".'],
+              ].map(([prop, uso]) => (
+                <tr key={prop} className="bg-[var(--color-surface)]">
+                  <td className="px-4 py-3 font-mono text-xs text-[var(--color-fg)]">{prop}</td>
+                  <td className="px-4 py-3 text-[var(--color-fg-muted)]">{uso}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Fileira de atalhos */}
+      <section style={{ marginTop: 36 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gov-azul-escuro)', margin: '0 0 12px', fontFamily: "'Saira Expanded', sans-serif" }}>Fileira de atalhos (HeroFileira)</h2>
+        <p style={{ fontSize: 14, color: '#7B8C96', marginBottom: 16, lineHeight: 1.55 }}>
+          Quando o hero tem vários atalhos, use a fileira. Ela abre <strong>um por vez</strong> e o
+          {' '}<strong>primeiro é o principal</strong>: fica aberto no repouso, explica a fileira inteira e
+          serve de chamada. Apontar outro abre esse e fecha o principal. Sair da fileira volta ao principal.
+          Passe o mouse ou use Tab no exemplo. <strong>Principal</strong> é posição (primeiro da lista, aberto
+          no repouso). <strong>Cor ouro</strong> é opcional por atalho (`variante="ouro"` no item), repassada
+          ao `HeroAtalho`. Os dois convivem: o primeiro pode ser ouro e aberto; os demais ficam no
+          `inverseOutline` até apontar.
+        </p>
+        <Copyable label="Fileira de atalhos" code={codeHeroFileira()} preview={
+          <div style={{ background: 'linear-gradient(135deg, #002A68, #004B9B)', borderRadius: 12, padding: '20px 16px', color: '#fff', fontFamily: "'Saira Expanded', sans-serif", fontSize: 13, textAlign: 'center' }}>
+            HeroFileira
+          </div>
+        }>
+          <div className="w-[640px] max-w-full overflow-hidden rounded-xl border border-[var(--color-border)] shadow-sm">
+            <PageHero>
+              <div className="px-6 py-8">
+                <HeroFileira
+                  label="Fileira de demonstração"
+                  atalhos={[
+                    { id: 'a', icon: ClipboardList, label: 'Ação primária', variante: 'ouro', 'data-tutorial': 'novo' },
+                    { id: 'b', icon: Settings, label: 'Secundária' },
+                    { id: 'c', icon: Sparkles, label: 'Terceira' },
+                    { id: 'd', icon: ShieldCheck, label: 'Quarta' },
+                    { id: 'e', icon: ClipboardList, label: 'Quinta' },
+                    { id: 'f', icon: Settings, label: 'Sexta' },
+                  ]}
+                />
+              </div>
+            </PageHero>
+          </div>
+        </Copyable>
+        <div className="mt-4 max-w-3xl rounded-2xl border border-[var(--color-semantic-info-border)] bg-[var(--color-semantic-info-bg)] p-4 text-sm leading-relaxed text-[var(--color-semantic-info-fg)]">
+          <strong>O estado mora na fileira, e o "saiu" também.</strong> Com o <code>onMouseLeave</code> em
+          cada atalho, atravessar a fileira pisca: o vão de 8px entre os botões zera o estado por um quadro
+          e o principal reabre no meio do caminho. Na fileira, o último apontado segura até outro assumir.
+          Pelo teclado vale o mesmo. O blur testa o <code>relatedTarget</code>. No Safari esse alvo vem nulo
+          no Tab entre irmãos e ao clicar (o Safari não foca botão no clique), e a fileira espera um instante
+          antes de voltar ao repouso. Com o ponteiro dentro da fileira, o blur não mexe no atalho apontado.
+          Sair com o mouse enquanto o teclado está num atalho não derruba esse foco, mas foco vindo de
+          clique do mouse não segura nada: só conta <code>:focus-visible</code>.
+        </div>
+        <p style={{ fontSize: 13, color: '#7B8C96', marginTop: 12, lineHeight: 1.55 }}>
+          A fileira é centrada. Como o atalho aberto é bem mais largo que o fechado, os vizinhos andam
+          quando o aberto muda, e o atalho apontado pode sair de baixo do cursor parado.
+        </p>
+        <div className="mt-4 max-w-3xl overflow-hidden rounded-2xl border border-[var(--color-border)]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)]">
+                <th className="px-4 py-3 text-left font-semibold text-[var(--color-fg)]">Prop</th>
+                <th className="px-4 py-3 text-left font-semibold text-[var(--color-fg)]">Uso</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--color-border)]">
+              {[
+                ['atalhos', 'Lista de { id, icon, label, variante?, href?, onClick?, pressionado?, data-*?, aria-*? }. O primeiro é o principal (aberto no repouso). variante repassa ao HeroAtalho (ex. ouro no primário visual). Os data-* e aria-* de cada item chegam ao <a>/<button> do atalho, aberto ou fechado.'],
+                ['label', 'Nome da faixa (<nav>) para leitor de tela. Padrão "Atalhos".'],
+                ['className', 'Opcional. Só para layout externo.'],
+              ].map(([prop, uso]) => (
+                <tr key={prop} className="bg-[var(--color-surface)]">
+                  <td className="px-4 py-3 font-mono text-xs text-[var(--color-fg)]">{prop}</td>
+                  <td className="px-4 py-3 text-[var(--color-fg-muted)]">{uso}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {/* Implementação */}
       <section style={{ marginTop: 36 }}>
@@ -193,6 +477,8 @@ export default function HeroHeaderDoc() {
         </div>
       </section>
 
+        <CodePlayground />
+
         <CodeExportSection items={[
           {
             label: 'Hero Header Glass-to-White',
@@ -229,7 +515,7 @@ function AdaptiveHeader() {
         background: 'rgba(255,255,255,0.95)',
         backdropFilter: 'blur(4px)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        color: 'var(--color-fg)',
+        color: '#333B41',
       } : {
         background: 'rgba(255,255,255,0.07)',
         backdropFilter: 'blur(12px)',
@@ -250,9 +536,10 @@ function AdaptiveHeader() {
         ]} />
 
         <div style={{ textAlign: 'center', padding: '20px 0 0', borderTop: '1px solid #E2E8F0', marginTop: 20 }}>
-          <span style={{ fontSize: 12, color: '#7B8C96', letterSpacing: '0.5px', fontFamily: "'Saira Expanded', sans-serif", fontWeight: 400 }}>DS-FIPS v0.4.0 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
+          <span style={{ fontSize: 12, color: '#7B8C96', letterSpacing: '0.5px', fontFamily: "'Saira Expanded', sans-serif", fontWeight: 400 }}>DS-FIPS v0.4.2 · Ferrovia Interna do Porto de Santos · Excelência sobre trilhos · {new Date().getFullYear()}</span>
         </div>
       </div>
     </div>
+    </PlaygroundProvider>
   )
 }

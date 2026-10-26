@@ -21,6 +21,8 @@ Conecte uma vez e a IA passa a saber **exatamente** quais componentes, variantes
 
 Outros hosts: `packages/mcp/examples/`.
 
+Quem rodou `npx -y git+https://github.com/FIPS-APP/mcp-design-system.git` tem uma cópia em `~/.npm/_npx/<hash>` e só vê a versão nova depois de apagar essa pasta.
+
 ## Estrutura
 
 Monorepo com dois pacotes publicáveis:

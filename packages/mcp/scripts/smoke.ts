@@ -267,10 +267,11 @@ for (const uri of sampledTemplates) {
   }
 }
 
-// bundled/ vem do DS 0.20.4: o globals.css traz as regras do banner (as mesmas
-// que o molde PageHeader replica) e as fontes locais, sem o @import do Google.
+// bundled/ vem do DS 0.20.26: o globals.css traz as regras do banner (as mesmas
+// que o molde PageHeader replica), as fontes locais, sem o @import do Google, e
+// os tokens da rodada de 24/10 (hover de texto do primary e cores do Switch).
 {
-  const label = 'bundled globals.css na linha do DS 0.20.4'
+  const label = 'bundled globals.css na linha do DS 0.20.26'
   try {
     const css = readResource('dsfips://styles/globals.css').text
     const missing = [
@@ -278,6 +279,9 @@ for (const uri of sampledTemplates) {
       '@container fips-page-header (min-width: 560px)',
       '--fips-banner-content-bg: linear-gradient(135deg, #1e2a3a 0%, #162030 50%, #1a2840 100%)',
       '#001a4a 100%',
+      '--color-primary-hover-text: var(--color-primary-hover)',
+      '--color-switch-on: var(--color-primary)',
+      '--color-border-control: #808d9a',
     ].filter((m) => !css.includes(m))
     if (css.includes('fonts.googleapis.com')) missing.push('sem @import do Google (ainda tem)')
     if (missing.length === 0) ok(label)

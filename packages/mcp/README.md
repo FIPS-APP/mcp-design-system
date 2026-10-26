@@ -85,22 +85,19 @@ Cada um devolve um pre-built turn de usuário pra bootstrapar o agente em um wor
 
 ## Como funciona
 
-O servidor lê **um único** JSON estruturado (`ds-manifest.json`) gerado pelo DS-FIPS em build:
+O servidor lê **um único** JSON estruturado (`ds-manifest.json`), gerado neste repo por `npm run build:manifest` a partir do `bundled/`:
 
 ```
-DS-FIPS repo                                MCP server
-─────────────                               ──────────
-src/tokens/*.ts             ┐
-src/components/ui/*.ts      │  build:manifest    ┌────────────────────┐
-src/styles/globals.css      │ ───────────────────▶│ ds-manifest.json   │
-src/composites/*            │                    │ (source of truth)   │
-src/docs/pages/patterns/*   ┘                    └─────────┬──────────┘
-                                                            │
-                                                            ▼
-                                              tools + resources + prompts
+bundled/src/styles/globals.css           ─┐
+bundled/skills/design-system-fips/        │
+bundled/src/docs/pages/patterns/          ├─ build:manifest ─▶ manifest/ds-manifest.json
+packages/eslint-plugin-ds-governance     ─┘                    (source of truth)
+                                                                       │
+                                                                       ▼
+                                                         tools + resources + prompts
 ```
 
-O MCP nunca importa `.tsx` — o que dá ao DS liberdade pra evoluir sem quebrar consumidores.
+O MCP nunca importa `.tsx`: o que dá ao DS liberdade pra evoluir sem quebrar consumidores. O `bundled/` é uma cópia de arquivos de uma tag do DS e o manifest é projeção dele: nada é escrito à mão. O CI regera o manifest e falha se ele diferir do versionado.
 
 A regra de governança usada por `validate_jsx` é a **mesma** que o DS-FIPS roda em CI, exposta como pacote npm separado: `@fips-app/eslint-plugin-ds-governance`. Drift = zero.
 
@@ -112,16 +109,16 @@ Para o playbook de "como manter o MCP em sincronia quando o time atualiza o DS",
 |---|---|
 | MCP versão | Quando contratos de tools/resources mudam (breaking). |
 | Manifest schemaVersion | Quando shape do manifest muda. |
-| `dsVersion` | Espelha exatamente a versão do DS-FIPS. |
+| `dsVersion` | Espelha a tag do DS-FIPS de onde o `bundled/` saiu (`designSystem.version` no `package.json`). |
 
 `get_version` retorna os três para o agente decidir compatibilidade.
 
 ## Desenvolvimento local
 
 ```bash
-# A partir da raiz do monorepo DS-FIPS
+# A partir da raiz deste monorepo
 npm install
-npm run build:manifest                                # gera dist/manifest/ds-manifest.json
+npm run build:manifest                                # regera manifest/ds-manifest.json a partir do bundled/
 npm --workspace @fips-app/mcp-design-system run dev   # roda via tsx (stdio)
 npm --workspace @fips-app/mcp-design-system run build # bundle de produção (tsup)
 ```
@@ -143,8 +140,8 @@ npm --workspace @fips-app/mcp-design-system run inspect
 - [x] 11 tools, 16 resources, 4 prompts, scaffold_screen, search
 - [x] Modo HTTP (`--http --port`)
 - [x] Closed-loop validation (scaffold output → validate_jsx clean)
-- [ ] Pacote `@fips-app/design-system-manifest` separado (publica o JSON em npm; hoje o MCP lê via workspace)
-- [ ] Migrar pra repo separado `github.com/FIPS-APP/mcp-design-system`
+- [x] Gerador do manifest no próprio repo (`build:manifest` lê o `bundled/`; o CI confere)
+- [x] Repo separado `github.com/FIPS-APP/mcp-design-system`
 - [ ] GitHub Action que dispara bump automático aqui no release do DS-FIPS
 
 ## Licença

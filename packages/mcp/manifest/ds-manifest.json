@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "dsVersion": "0.4.1",
-  "generatedAt": "2026-04-27T20:44:29.930Z",
+  "dsVersion": "0.20.26",
+  "generatedAt": "2026-10-26T00:00:00.000Z",
   "tokens": {
     "palette": {
       "azulProfundo": "#004B9B",
@@ -26,48 +26,119 @@
         "primary": "#004B9B",
         "primaryHover": "#002A68",
         "secondary": "#0090D0",
+        "secondaryHover": "#007AB1",
         "accent": "#FDC24E",
         "accentStrong": "#F6921E",
         "success": "#00C64C",
         "successStrong": "#00904C",
-        "info": "#93BDE4",
+        "warning": "#F6921E",
+        "danger": "#EF4444",
+        "dangerStrong": "#B91C1C",
         "surface": "#FFFFFF",
-        "surfaceMuted": "#E8EBFF",
-        "border": "#C0CCD2",
-        "foreground": "#333B41",
-        "foregroundMuted": "#4b5563",
-        "sidebar": "#004B9B",
-        "sidebarMuted": "#002A68"
+        "surfaceSoft": "#FBFDFF",
+        "surfaceMuted": "#F5F8FC",
+        "tableZebra": "color-mix(in srgb, #d3e3f4 25%, transparent)",
+        "border": "#D7E0EA",
+        "borderStrong": "#C0CCD2",
+        "borderControl": "#808D9A",
+        "fg": "#333B41",
+        "fgMuted": "#6B7784",
+        "primaryText": "#004B9B",
+        "primaryHoverText": "#002A68",
+        "dangerText": "#B91C1C",
+        "successFill": "#00904C",
+        "neutralFill": "#6B7784",
+        "btnSuccess": "#00C64C",
+        "btnSuccessHover": "#00904C",
+        "btnDanger": "#EF4444",
+        "btnDangerHover": "#C82333",
+        "btnAccentFg": "#FFFFFF",
+        "btnAccentHover": "#F6921E",
+        "ring": "#0090D0",
+        "switchOn": "#004B9B",
+        "switchOff": "#6B7784",
+        "badgeWarningBg": "#FFF0D6",
+        "badgeDangerBg": "#FEE2E2",
+        "sidebar": "#002A68",
+        "sidebarDeep": "#002A68",
+        "sidebarSoft": "#004B9B",
+        "govAzulProfundo": "#004B9B",
+        "govAzulEscuro": "#002A68",
+        "govAzulClaro": "#658EC9",
+        "govVerdeEscuro": "#00904C",
+        "govGradientFrom": "#004B9B",
+        "govGradientTo": "#002A68",
+        "semanticInfoBg": "#D3E3F4",
+        "semanticInfoFg": "#002A68",
+        "semanticInfoBorder": "#93BDE4",
+        "semanticAtencaoBg": "#FFF7ED",
+        "semanticAtencaoFg": "#C2410C",
+        "semanticAtencaoBorder": "#FDBA74",
+        "semanticSucessoBg": "#ECFDF5",
+        "semanticSucessoFg": "#00904C",
+        "semanticSucessoBorder": "#A7F3D0",
+        "semanticCriticoBg": "#FEF2F2",
+        "semanticCriticoFg": "#B91C1C",
+        "semanticCriticoBorder": "#FECACA"
       },
       "dark": {
-        "surface": "#222222",
-        "surfaceSoft": "#252525",
-        "surfaceMuted": "#1A1A1A",
-        "border": "#2E2E2E",
-        "borderStrong": "#3a3a3a",
-        "foreground": "#E2E2E8",
-        "foregroundMuted": "#A1A1AA",
-        "primary": "#93BDE4",
-        "primaryHover": "#658EC9",
+        "primary": "#004B9B",
+        "primaryHover": "#002A68",
         "secondary": "#0090D0",
+        "secondaryHover": "#007AB1",
         "accent": "#FDC24E",
         "accentStrong": "#F6921E",
-        "success": "#8BE5AD",
-        "successStrong": "#00C64C",
-        "danger": "#FCA5A5",
-        "info": "#93BDE4",
-        "warning": "#FDC24E",
-        "sidebar": "#1A1A1A",
-        "sidebarDeep": "#0a0c10",
-        "sidebarSoft": "#222222",
-        "inputBorder": "#3a3a3a",
-        "inputBorderHover": "#4a4a4a",
-        "inputBorderFocus": "#93BDE4",
-        "inputBg": "#252525",
-        "badgeSuccessBg": "rgba(0,198,76,0.14)",
-        "badgeWarningBg": "rgba(246,146,30,0.14)",
-        "badgeDangerBg": "rgba(239,68,68,0.14)",
-        "badgeInfoBg": "rgba(147,189,228,0.14)"
+        "success": "#00C64C",
+        "successStrong": "#8BE5AD",
+        "warning": "#F6921E",
+        "danger": "#EF4444",
+        "dangerStrong": "#FCA5A5",
+        "surface": "#1A1A1A",
+        "surfaceSoft": "#1F1F1F",
+        "surfaceMuted": "#252525",
+        "tableZebra": "rgba(255, 255, 255, 0.03)",
+        "border": "#2E2E2E",
+        "borderStrong": "#3A3A3A",
+        "borderControl": "#666666",
+        "fg": "#E8E8E8",
+        "fgMuted": "#9CA3AF",
+        "primaryText": "#93BDE4",
+        "primaryHoverText": "#93BDE4",
+        "dangerText": "#FCA5A5",
+        "successFill": "#008842",
+        "neutralFill": "#5B6470",
+        "btnSuccess": "#008842",
+        "btnSuccessHover": "color-mix(in srgb, #008842 80%, black)",
+        "btnDanger": "#DC2626",
+        "btnDangerHover": "#B91C1C",
+        "btnAccentFg": "#002A68",
+        "btnAccentHover": "#FDC24E",
+        "ring": "#F6921E",
+        "switchOn": "#658EC9",
+        "switchOff": "#7A7A82",
+        "badgeWarningBg": "rgba(246, 146, 30, 0.14)",
+        "badgeDangerBg": "rgba(239, 68, 68, 0.14)",
+        "sidebar": "#002A68",
+        "sidebarDeep": "#002A68",
+        "sidebarSoft": "#004B9B",
+        "govAzulProfundo": "#93BDE4",
+        "govAzulEscuro": "#658EC9",
+        "govAzulClaro": "#93BDE4",
+        "govVerdeEscuro": "#8BE5AD",
+        "govGradientFrom": "#333B41",
+        "govGradientTo": "#2A2F35",
+        "semanticInfoBg": "rgba(147, 189, 228, 0.14)",
+        "semanticInfoFg": "#93BDE4",
+        "semanticInfoBorder": "rgba(147, 189, 228, 0.28)",
+        "semanticAtencaoBg": "rgba(246, 146, 30, 0.14)",
+        "semanticAtencaoFg": "#FDC24E",
+        "semanticAtencaoBorder": "rgba(246, 146, 30, 0.28)",
+        "semanticSucessoBg": "rgba(0, 198, 76, 0.14)",
+        "semanticSucessoFg": "#8BE5AD",
+        "semanticSucessoBorder": "rgba(0, 198, 76, 0.28)",
+        "semanticCriticoBg": "rgba(239, 68, 68, 0.14)",
+        "semanticCriticoFg": "#FCA5A5",
+        "semanticCriticoBorder": "rgba(239, 68, 68, 0.28)"
       }
     },
     "cssVars": {
@@ -79,6 +150,7 @@
         "--color-fips-blue-700": "#658ec9",
         "--color-fips-blue-400": "#93bde4",
         "--color-fips-blue-200": "#d3e3f4",
+        "--color-fips-blue-100": "#e9f2fb",
         "--color-fips-sky-600": "#0090d0",
         "--color-fips-yellow-400": "#fdc24e",
         "--color-fips-yellow-600": "#f6921e",
@@ -88,6 +160,8 @@
         "--color-fips-green-300": "#8be5ad",
         "--color-fips-red-600": "#ef4444",
         "--color-fips-red-100": "#fee2e2",
+        "--color-fips-red-700": "#b91c1c",
+        "--color-fips-red-300": "#fca5a5",
         "--color-fips-orange-100": "#fff0d6",
         "--color-fips-gray-900": "#333b41",
         "--color-fips-gray-400": "#c0ccd2",
@@ -106,6 +180,20 @@
         "--shadow-float": "0 12px 36px rgb(15 23 42 / 0.12)"
       },
       "root": {
+        "--modo-alvo-min": "35px",
+        "--modo-texto-campo": "13px",
+        "--modo-texto-base": "1.08rem",
+        "--modo-texto-rotulo": "0.75rem",
+        "--modo-espaco": "1rem",
+        "--modo-borda-largura": "1px",
+        "--modo-borda-cartao": "1px solid var(--color-border)",
+        "--modo-sombra-cartao": "var(--shadow-card)",
+        "--modo-raio-controle": "var(--radius-lg)",
+        "--modo-raio-cartao": "var(--radius-2xl)",
+        "--modo-texto-titulo": "1.25rem",
+        "--modo-peso": "600",
+        "--alvo-toque": "var(--modo-alvo-min)",
+        "--abas-secao-altura": "max(39px, var(--alvo-toque))",
         "--color-primary": "var(--color-fips-blue-900)",
         "--color-primary-hover": "var(--color-fips-blue-950)",
         "--color-secondary": "var(--color-fips-sky-600)",
@@ -116,14 +204,30 @@
         "--color-success-strong": "var(--color-fips-green-700)",
         "--color-warning": "var(--color-fips-yellow-600)",
         "--color-danger": "var(--color-fips-red-600)",
+        "--color-danger-strong": "var(--color-fips-red-700)",
         "--color-surface": "#ffffff",
         "--color-surface-soft": "var(--color-fips-neutral-25)",
         "--color-surface-muted": "var(--color-fips-neutral-50)",
+        "--color-table-zebra": "color-mix(in srgb, var(--color-fips-blue-200) 25%, transparent)",
         "--color-border": "#d7e0ea",
         "--color-border-strong": "var(--color-fips-gray-400)",
+        "--color-border-control": "#808d9a",
         "--color-fg": "var(--color-fips-gray-900)",
         "--color-fg-muted": "#6b7784",
+        "--color-primary-text": "var(--color-primary)",
+        "--color-primary-hover-text": "var(--color-primary-hover)",
+        "--color-danger-text": "var(--color-danger-strong)",
+        "--color-success-fill": "var(--color-fips-green-700)",
+        "--color-neutral-fill": "var(--color-fg-muted)",
+        "--color-btn-success": "var(--color-success)",
+        "--color-btn-success-hover": "var(--color-success-strong)",
+        "--color-btn-danger": "var(--color-danger)",
+        "--color-btn-danger-hover": "#c82333",
+        "--color-btn-accent-fg": "#ffffff",
+        "--color-btn-accent-hover": "var(--color-warning)",
         "--color-ring": "var(--color-fips-sky-600)",
+        "--color-switch-on": "var(--color-primary)",
+        "--color-switch-off": "var(--color-fg-muted)",
         "--color-badge-warning-bg": "var(--color-fips-orange-100)",
         "--color-badge-danger-bg": "var(--color-fips-red-100)",
         "--color-sidebar": "var(--color-fips-blue-950)",
@@ -134,7 +238,25 @@
         "--color-gov-azul-claro": "#658EC9",
         "--color-gov-verde-escuro": "#00904C",
         "--color-gov-gradient-from": "#004B9B",
-        "--color-gov-gradient-to": "#002A68"
+        "--color-gov-gradient-to": "#002A68",
+        "--color-semantic-info-bg": "var(--color-fips-blue-200)",
+        "--color-semantic-info-fg": "var(--color-fips-blue-950)",
+        "--color-semantic-info-border": "var(--color-fips-blue-400)",
+        "--color-semantic-atencao-bg": "#fff7ed",
+        "--color-semantic-atencao-fg": "#c2410c",
+        "--color-semantic-atencao-border": "#fdba74",
+        "--color-semantic-sucesso-bg": "#ecfdf5",
+        "--color-semantic-sucesso-fg": "#00904c",
+        "--color-semantic-sucesso-border": "#a7f3d0",
+        "--color-semantic-critico-bg": "#fef2f2",
+        "--color-semantic-critico-fg": "var(--color-danger-strong)",
+        "--color-semantic-critico-border": "#fecaca",
+        "--shadow-card": "0 1px 3px rgba(0, 75, 155, 0.04), 0 4px 14px rgba(0, 75, 155, 0.03)",
+        "--fips-banner-page-bg": "linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 100%)",
+        "--fips-banner-content-bg": "linear-gradient(135deg, var(--color-gov-gradient-from) 0%, var(--color-gov-gradient-to) 60%, #001a4a 100%)",
+        "--fips-banner-content-shadow": "0 4px 20px rgba(0, 42, 104, 0.12)",
+        "--fips-banner-content-border-color": "transparent",
+        "--fips-banner-junction-opacity": "0.12"
       },
       "dark": {
         "--color-primary": "var(--color-fips-blue-900)",
@@ -144,17 +266,33 @@
         "--color-accent": "var(--color-fips-yellow-400)",
         "--color-accent-strong": "var(--color-fips-yellow-600)",
         "--color-success": "var(--color-fips-green-500)",
-        "--color-success-strong": "var(--color-fips-green-700)",
+        "--color-success-strong": "#8be5ad",
         "--color-warning": "var(--color-fips-yellow-600)",
         "--color-danger": "var(--color-fips-red-600)",
-        "--color-surface": "#222222",
-        "--color-surface-soft": "#252525",
-        "--color-surface-muted": "#1A1A1A",
-        "--color-border": "#2E2E2E",
+        "--color-danger-strong": "var(--color-fips-red-300)",
+        "--color-surface": "#1a1a1a",
+        "--color-surface-soft": "#1f1f1f",
+        "--color-surface-muted": "#252525",
+        "--color-table-zebra": "rgba(255, 255, 255, 0.03)",
+        "--color-border": "#2e2e2e",
         "--color-border-strong": "#3a3a3a",
-        "--color-fg": "#E2E2E8",
-        "--color-fg-muted": "#A1A1AA",
+        "--color-border-control": "#666666",
+        "--color-fg": "#e8e8e8",
+        "--color-fg-muted": "#9ca3af",
+        "--color-primary-text": "var(--color-fips-blue-400)",
+        "--color-primary-hover-text": "var(--color-fips-blue-400)",
+        "--color-danger-text": "var(--color-danger-strong)",
+        "--color-success-fill": "#008842",
+        "--color-neutral-fill": "#5b6470",
+        "--color-btn-success": "var(--color-success-fill)",
+        "--color-btn-success-hover": "color-mix(in srgb, var(--color-success-fill) 80%, black)",
+        "--color-btn-danger": "#dc2626",
+        "--color-btn-danger-hover": "#b91c1c",
+        "--color-btn-accent-fg": "var(--color-primary-hover)",
+        "--color-btn-accent-hover": "var(--color-accent)",
         "--color-ring": "var(--color-fips-yellow-600)",
+        "--color-switch-on": "var(--color-fips-blue-700)",
+        "--color-switch-off": "#7a7a82",
         "--color-badge-warning-bg": "rgba(246, 146, 30, 0.14)",
         "--color-badge-danger-bg": "rgba(239, 68, 68, 0.14)",
         "--color-sidebar": "var(--color-fips-blue-950)",
@@ -165,7 +303,23 @@
         "--color-gov-azul-claro": "#93BDE4",
         "--color-gov-verde-escuro": "#8BE5AD",
         "--color-gov-gradient-from": "#333B41",
-        "--color-gov-gradient-to": "#2a2f35"
+        "--color-gov-gradient-to": "#2a2f35",
+        "--color-semantic-info-bg": "rgba(147, 189, 228, 0.14)",
+        "--color-semantic-info-fg": "#93bde4",
+        "--color-semantic-info-border": "rgba(147, 189, 228, 0.28)",
+        "--color-semantic-atencao-bg": "rgba(246, 146, 30, 0.14)",
+        "--color-semantic-atencao-fg": "#fdc24e",
+        "--color-semantic-atencao-border": "rgba(246, 146, 30, 0.28)",
+        "--color-semantic-sucesso-bg": "rgba(0, 198, 76, 0.14)",
+        "--color-semantic-sucesso-fg": "#8be5ad",
+        "--color-semantic-sucesso-border": "rgba(0, 198, 76, 0.28)",
+        "--color-semantic-critico-bg": "rgba(239, 68, 68, 0.14)",
+        "--color-semantic-critico-fg": "var(--color-danger-strong)",
+        "--color-semantic-critico-border": "rgba(239, 68, 68, 0.28)",
+        "--fips-banner-content-bg": "linear-gradient(135deg, #1e2a3a 0%, #162030 50%, #1a2840 100%)",
+        "--fips-banner-content-shadow": "0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04)",
+        "--fips-banner-content-border-color": "rgba(147, 189, 228, 0.08)",
+        "--fips-banner-junction-opacity": "0.04"
       }
     },
     "spacing": [
@@ -215,6 +369,7 @@
           "accent",
           "inverseOutline",
           "success",
+          "successStrong",
           "ouro",
           "danger",
           "link"
@@ -231,10 +386,7 @@
         "variant": "primary",
         "size": "md"
       },
-      "subComponents": [
-        "ButtonVariantProps",
-        "ButtonProps"
-      ]
+      "subComponents": []
     },
     {
       "name": "Badge",
@@ -251,13 +403,8 @@
           "info"
         ]
       },
-      "defaultVariants": {
-        "variant": "default"
-      },
-      "subComponents": [
-        "BadgeVariantProps",
-        "BadgeProps"
-      ]
+      "defaultVariants": null,
+      "subComponents": []
     },
     {
       "name": "Card",
@@ -266,46 +413,11 @@
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "CardContent",
-        "CardDescription",
-        "CardFooter",
         "CardHeader",
-        "CardTitle"
-      ]
-    },
-    {
-      "name": "Dialog",
-      "importPath": "src/components/ui/dialog.tsx",
-      "governed": false,
-      "variants": null,
-      "defaultVariants": null,
-      "subComponents": [
-        "DialogClose",
-        "DialogContent",
-        "DialogDescription",
-        "DialogFooter",
-        "DialogHeader",
-        "DialogOverlay",
-        "DialogPortal",
-        "DialogTitle",
-        "DialogTrigger"
-      ]
-    },
-    {
-      "name": "Drawer",
-      "importPath": "src/components/ui/drawer.tsx",
-      "governed": false,
-      "variants": null,
-      "defaultVariants": null,
-      "subComponents": [
-        "DrawerClose",
-        "DrawerContent",
-        "DrawerDescription",
-        "DrawerHeader",
-        "DrawerOverlay",
-        "DrawerPortal",
-        "DrawerTitle",
-        "DrawerTrigger"
+        "CardTitle",
+        "CardDescription",
+        "CardContent",
+        "CardFooter"
       ]
     },
     {
@@ -315,17 +427,9 @@
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "FieldHint",
         "FieldLabel",
-        "FieldMessage",
-        "FieldDensity",
-        "FieldInset",
-        "FieldProps",
-        "FieldHintProps",
-        "FieldLabelProps",
-        "FieldMessageProps",
-        "FieldTrigger",
-        "FieldTriggerProps"
+        "FieldHint",
+        "FieldMessage"
       ]
     },
     {
@@ -334,9 +438,7 @@
       "governed": false,
       "variants": null,
       "defaultVariants": null,
-      "subComponents": [
-        "FieldTriggerProps"
-      ]
+      "subComponents": []
     },
     {
       "name": "Input",
@@ -344,15 +446,7 @@
       "governed": true,
       "variants": null,
       "defaultVariants": null,
-      "subComponents": [
-        "InputProps",
-        "InputGroup",
-        "InputGroupAddon",
-        "InputGroupButton",
-        "InputGroupText",
-        "InputGroupInput",
-        "InputGroupTextarea"
-      ]
+      "subComponents": []
     },
     {
       "name": "InputGroup",
@@ -369,24 +463,36 @@
       ]
     },
     {
-      "name": "Progress",
-      "importPath": "src/components/ui/progress.tsx",
-      "governed": false,
-      "variants": null,
-      "defaultVariants": null,
-      "subComponents": [
-        "ProgressProps"
-      ]
-    },
-    {
       "name": "Select",
       "importPath": "src/components/ui/select.tsx",
       "governed": true,
       "variants": null,
       "defaultVariants": null,
-      "subComponents": [
-        "SelectProps"
-      ]
+      "subComponents": []
+    },
+    {
+      "name": "Textarea",
+      "importPath": "src/components/ui/textarea.tsx",
+      "governed": true,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "Switch",
+      "importPath": "src/components/ui/switch.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "Progress",
+      "importPath": "src/components/ui/progress.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
     },
     {
       "name": "Table",
@@ -395,13 +501,53 @@
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "TableBody",
-        "TableCell",
-        "TableEmpty",
-        "TableHead",
         "TableHeader",
-        "TableRow"
+        "TableHead",
+        "TableBody",
+        "TableRow",
+        "TableCell",
+        "TableEmpty"
       ]
+    },
+    {
+      "name": "AdminTableColumnMenu",
+      "importPath": "src/components/ui/index.ts",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "AdminTablePagination",
+      "importPath": "src/components/ui/index.ts",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "AdminTableSortHeader",
+      "importPath": "src/components/ui/index.ts",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "AdminTableCompanyCell",
+      "importPath": "src/components/ui/index.ts",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
+    },
+    {
+      "name": "AdminTableStatusDots",
+      "importPath": "src/components/ui/index.ts",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": []
     },
     {
       "name": "Tabs",
@@ -410,19 +556,49 @@
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "TabsContent",
         "TabsList",
-        "TabsTrigger"
+        "TabsTrigger",
+        "TabsContent"
       ]
     },
     {
-      "name": "Textarea",
-      "importPath": "src/components/ui/textarea.tsx",
-      "governed": true,
+      "name": "Dialog",
+      "importPath": "src/components/ui/dialog.tsx",
+      "governed": false,
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "TextareaProps"
+        "DialogContent",
+        "DialogHeader",
+        "DialogTitle",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogClose",
+        "DialogIconTile"
+      ]
+    },
+    {
+      "name": "Modal",
+      "importPath": "src/components/ui/Modal.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "ModalFooter"
+      ]
+    },
+    {
+      "name": "Drawer",
+      "importPath": "src/components/ui/drawer.tsx",
+      "governed": false,
+      "variants": null,
+      "defaultVariants": null,
+      "subComponents": [
+        "DrawerContent",
+        "DrawerHeader",
+        "DrawerTitle",
+        "DrawerDescription",
+        "DrawerClose"
       ]
     },
     {
@@ -432,9 +608,9 @@
       "variants": null,
       "defaultVariants": null,
       "subComponents": [
-        "TooltipContent",
         "TooltipProvider",
-        "TooltipTrigger"
+        "TooltipTrigger",
+        "TooltipContent"
       ]
     }
   ],
@@ -452,6 +628,12 @@
       "summary": "Lista densa com KPIs, busca, filtros por segmento e linhas com realce semântico — alinhado a gestão documental."
     },
     {
+      "id": "configuracoes",
+      "name": "ConfiguracoesDemo",
+      "file": "src/docs/pages/patterns/ConfiguracoesDemo.tsx",
+      "summary": null
+    },
+    {
       "id": "dashboard",
       "name": "DashboardDemo",
       "file": "src/docs/pages/patterns/DashboardDemo.tsx",
@@ -461,6 +643,12 @@
       "id": "data-listing",
       "name": "DataListingDemo",
       "file": "src/docs/pages/patterns/DataListingDemo.tsx",
+      "summary": null
+    },
+    {
+      "id": "filtro",
+      "name": "FiltroDemo",
+      "file": "src/docs/pages/patterns/FiltroDemo.tsx",
       "summary": null
     },
     {
@@ -485,13 +673,13 @@
       "id": "modal-form",
       "name": "ModalFormDemo",
       "file": "src/docs/pages/patterns/ModalFormDemo.tsx",
-      "summary": "Formulário em duas colunas com abas superiores, seletor de prioridade com dots, barra de progresso, chips de responsável e upload de documentos — referência oficial baseada no padrão CONTPIX, composta apenas com primitivas do DS-FIPS."
+      "summary": "Formulário em duas colunas com abas superiores, seletor de prioridade com dots, barra de progresso, chips de responsável e upload de documentos. Clique no demo para copiar o código."
     },
     {
       "id": "modal-workflow",
       "name": "ModalWorkflowDemo",
       "file": "src/docs/pages/patterns/ModalWorkflowDemo.tsx",
-      "summary": "Modal operacional extraído do TaskModal.tsx (CONTPIX). Reprodução fiel do design-system.md — tabs segmentadas, grid de campos com ícones, prioridade com dots, slider de progresso, chips de responsável e área de anexos."
+      "summary": "Modal operacional extraído do TaskModal.tsx (CONTPIX). Tabs segmentadas, grid de campos com ícones, prioridade com dots, slider de progresso, chips de responsável e área de anexos. Clique no demo para copiar o código."
     }
   ],
   "governance": {
@@ -507,65 +695,51 @@
     ],
     "blockedClassPrefixPattern": "^(?:bg-|text-|border(?:$|-)|rounded(?:$|-)|shadow(?:$|-)|h(?:$|-)|min-h(?:$|-)|max-h(?:$|-)|p(?:$|-|x-|y-|t-|r-|b-|l-)|font(?:$|-)|leading(?:$|-)|tracking(?:$|-)|ring(?:$|-)|opacity(?:$|-))",
     "nonNegotiables": [
-      "Headings use Saira Expanded; body copy uses Open Sans.",
-      "Stay inside the FIPS palette: deep institutional blue for structure, gold/orange for accents, restrained neutrals.",
-      "Use PageHero for module headers; use Field + Input/Select/Textarea for forms.",
-      "Do not create local visual overrides for radius, shadow, border, spacing, or color to satisfy a single screen — promote the need to a CVA variant."
+      "Brand identity source of truth is `docs/Brandbook PPT.pdf`. If the PDF is unavailable, follow the exact token tables and snippets in the reference files.",
+      "Headings use `Saira Expanded`. Body copy uses `Open Sans`.",
+      "Product UI stays inside the FIPS palette: deep institutional blue for structure, gold/orange for accents, restrained neutrals for surfaces and borders.",
+      "Use `PageHero` for module headers and `Field` plus `Input`/`Select`/`Textarea` for forms.",
+      "Do not create one-off local overrides for radius, shadow, border, spacing, or color just to satisfy one screen.",
+      "**Modal é componente, não montagem.** Use `<Modal>`/`<ModalFooter>` de `src/components/ui/Modal.tsx` (`@fips-app/ds-fips`) — nunca remonte a casca (`Dialog`/`DialogContent`/header/close/radius) na mão. Ver checklist abaixo. Hoje a própria doc do DS (`DialogDoc.tsx`) e alguns componentes reais (`ChangelogModal`, `ExportPreviewModal`, `BuscarPessoaModal`) não seguem essa regra — são dívida conhecida, não exemplo a copiar.",
+      "**`className` on governed primitives is for external layout only.** The ESLint rule `governance/no-visual-overrides` (`eslint.config.js`) blocks visual Tailwind classes (`bg-`, `text-`, `border`, `rounded`, `shadow`, `h-`/`min-h-`, `p-`/`px-`, `font-`, `leading-`, `tracking-`, `ring-`, `opacity-`) passed to `Button`, `Input`, `Select`, `Textarea`, `TabsList`, `TabsTrigger` anywhere outside `src/components/ui/**`. To change appearance, add a variant in the matching `*-variants.ts` (CVA) — never ad-hoc classes in JSX.",
+      "`--color-primary` and the other accent tokens are **identical in light and dark**. Any accent usage needs the manual `dark:…-[#93BDE4]` pair — see `references/foundations.md`."
     ]
   },
   "exports": {
     "barrel": [
-      "AdminTableColumnItem",
       "AdminTableColumnMenu",
       "AdminTableCompanyCell",
       "AdminTablePagination",
-      "AdminTableSortDirection",
       "AdminTableSortHeader",
       "AdminTableStatusDots",
-      "AdminTableStatusTone",
       "Badge",
-      "BadgeProps",
-      "BadgeVariantProps",
       "Button",
-      "ButtonProps",
-      "ButtonVariantProps",
       "Card",
       "CardContent",
       "CardDescription",
       "CardFooter",
       "CardHeader",
       "CardTitle",
+      "DIALOG_CONTENT_SCROLL_WRAPPER_CLASS",
       "Dialog",
       "DialogClose",
       "DialogContent",
       "DialogDescription",
       "DialogFooter",
       "DialogHeader",
-      "DialogOverlay",
-      "DialogPortal",
+      "DialogIconTile",
       "DialogTitle",
-      "DialogTrigger",
       "Drawer",
       "DrawerClose",
       "DrawerContent",
       "DrawerDescription",
       "DrawerHeader",
-      "DrawerOverlay",
-      "DrawerPortal",
       "DrawerTitle",
-      "DrawerTrigger",
       "Field",
-      "FieldDensity",
       "FieldHint",
-      "FieldHintProps",
-      "FieldInset",
       "FieldLabel",
-      "FieldLabelProps",
       "FieldMessage",
-      "FieldMessageProps",
-      "FieldProps",
       "FieldTrigger",
-      "FieldTriggerProps",
       "Input",
       "InputGroup",
       "InputGroupAddon",
@@ -573,11 +747,11 @@
       "InputGroupInput",
       "InputGroupText",
       "InputGroupTextarea",
-      "InputProps",
+      "Modal",
+      "ModalFooter",
       "Progress",
-      "ProgressProps",
       "Select",
-      "SelectProps",
+      "Switch",
       "Table",
       "TableBody",
       "TableCell",
@@ -590,11 +764,12 @@
       "TabsList",
       "TabsTrigger",
       "Textarea",
-      "TextareaProps",
       "Tooltip",
       "TooltipContent",
       "TooltipProvider",
-      "TooltipTrigger"
+      "TooltipTrigger",
+      "badgeVariants",
+      "buttonVariants"
     ]
   }
 }

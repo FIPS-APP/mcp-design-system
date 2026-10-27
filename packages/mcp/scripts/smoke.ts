@@ -303,6 +303,9 @@ for (const uri of sampledTemplates) {
       '#001a4a 100%',
       '--color-primary-hover-text: var(--color-primary-hover)',
       '--color-switch-on: var(--color-primary)',
+      '--color-switch-off: var(--color-fg-muted)',
+      '--color-switch-on: var(--color-fips-blue-700)',
+      '--color-switch-off: #7a7a82',
       '--color-border-control: #808d9a',
     ].filter((m) => !css.includes(m))
     if (css.includes('fonts.googleapis.com')) missing.push('sem @import do Google (ainda tem)')

@@ -24,8 +24,13 @@
     "continue",
     "cline"
   ],
+  "designSystem": {
+    "version": "0.20.26",
+    "syncedAt": "2026-10-26"
+  },
   "scripts": {
     "build": "tsup",
+    "build:manifest": "tsx scripts/build-ds-manifest.ts",
     "dev": "tsx src/server.ts",
     "inspect": "npx @modelcontextprotocol/inspector tsx src/server.ts",
     "typecheck": "tsc --noEmit"

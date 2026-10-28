@@ -1,13 +1,12 @@
 /**
- * Loads the DS-FIPS manifest produced by `npm run build:manifest` in the
- * design-system repo.
+ * Loads the DS-FIPS manifest that `npm run build:manifest` generates from
+ * `packages/mcp/bundled/` (see scripts/build-ds-manifest.ts and SYNC.md).
  *
  * Resolution order:
  *   1. Env var DS_FIPS_MANIFEST_PATH (absolute path to ds-manifest.json)
- *   2. Repo-relative dist/manifest/ds-manifest.json (when running from the
- *      DS-FIPS monorepo, this is the live build output)
- *   3. Bundled fallback at ../manifest/ds-manifest.json (set by the build
- *      step when the package is published standalone — not used yet)
+ *   2. Repo-relative dist/manifest/ds-manifest.json (when running from a
+ *      checkout that has a live build output there)
+ *   3. packages/mcp/manifest/ds-manifest.json, committed in this repo
  *
  * The loader is sync at startup so all tools see the same snapshot.
  */
@@ -46,7 +45,7 @@ export interface Manifest {
     }
     spacing: number[]
     typography: {
-      families: { heading: string[]; body: string[]; mono: string[] }
+      families: { heading: string; body: string; mono: string }
       scale: Record<string, string>
     }
   }
@@ -88,7 +87,7 @@ export function loadManifest(): Manifest {
     }
   }
   throw new Error(
-    'DS-FIPS manifest not found. Run `npm run build:manifest` in the DS-FIPS repo, ' +
+    'DS-FIPS manifest not found. Run `npm run build:manifest` at the root of this repo, ' +
       'or set DS_FIPS_MANIFEST_PATH to point at ds-manifest.json.\nSearched:\n  ' +
       candidatePaths().join('\n  '),
   )

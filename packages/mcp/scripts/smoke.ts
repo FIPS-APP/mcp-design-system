@@ -5,9 +5,21 @@
  *   npm --workspace @fips-app/mcp-design-system exec tsx scripts/smoke.ts
  */
 
+import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { dirname } from 'node:path'
 import { tools } from '../src/tools/index.js'
 import { listResources, listResourceTemplates, readResource } from '../src/resources/index.js'
 import { listPrompts, getPrompt } from '../src/prompts/index.js'
+import { loadManifest } from '../src/manifest/loader.js'
+import {
+  MANIFEST_PATH,
+  ManifestBuildError,
+  buildCssVars,
+  buildManifest,
+  readDsMeta,
+  renderManifest,
+} from './ds-manifest.js'
 
 let pass = 0
 let fail = 0
@@ -83,11 +95,23 @@ const toolCases: ToolCase[] = [
     },
   },
   {
+    // No escuro o verde de texto é o --color-success-strong (#8be5ad); o --color-success é igual nos dois temas.
     tool: 'resolve_token',
-    input: { semantic: 'success', mode: 'dark' },
+    input: { semantic: 'successStrong', mode: 'dark' },
     check: (o) => {
-      const x = o as { dark?: string }
-      return x.dark === '#8BE5AD' ? null : `dark=${x.dark}`
+      const x = o as { dark?: string; cssVar?: string }
+      return x.dark === '#8BE5AD' && x.cssVar === '--color-success-strong' ? null : `dark=${x.dark} cssVar=${x.cssVar}`
+    },
+  },
+  {
+    // Token da rodada de 24/10 (DS 0.20.26): o trilho do Switch ligado.
+    tool: 'resolve_token',
+    input: { semantic: 'switchOn', mode: 'both' },
+    check: (o) => {
+      const x = o as { light?: string; dark?: string; cssVar?: string }
+      return x.light === '#004B9B' && x.dark === '#658EC9' && x.cssVar === '--color-switch-on'
+        ? null
+        : `light=${x.light} dark=${x.dark} cssVar=${x.cssVar}`
     },
   },
   {
@@ -267,10 +291,11 @@ for (const uri of sampledTemplates) {
   }
 }
 
-// bundled/ vem do DS 0.20.4: o globals.css traz as regras do banner (as mesmas
-// que o molde PageHeader replica) e as fontes locais, sem o @import do Google.
+// bundled/ vem do DS 0.20.26: o globals.css traz as regras do banner (as mesmas
+// que o molde PageHeader replica), as fontes locais, sem o @import do Google, e
+// os tokens da rodada de 24/10 (hover de texto do primary e cores do Switch).
 {
-  const label = 'bundled globals.css na linha do DS 0.20.4'
+  const label = 'bundled globals.css na linha do DS 0.20.26'
   try {
     const css = readResource('dsfips://styles/globals.css').text
     const missing = [
@@ -278,10 +303,90 @@ for (const uri of sampledTemplates) {
       '@container fips-page-header (min-width: 560px)',
       '--fips-banner-content-bg: linear-gradient(135deg, #1e2a3a 0%, #162030 50%, #1a2840 100%)',
       '#001a4a 100%',
+      '--color-primary-hover-text: var(--color-primary-hover)',
+      '--color-switch-on: var(--color-primary)',
+      '--color-switch-off: var(--color-fg-muted)',
+      '--color-switch-on: var(--color-fips-blue-700)',
+      '--color-switch-off: #7a7a82',
+      '--color-border-control: #808d9a',
     ].filter((m) => !css.includes(m))
     if (css.includes('fonts.googleapis.com')) missing.push('sem @import do Google (ainda tem)')
     if (missing.length === 0) ok(label)
     else bad(label, missing.join('; '))
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+// O manifest é a projeção do bundled/ (scripts/ds-manifest.ts). Se o JSON for
+// editado à mão, ou o bundled/ mudar sem `npm run build:manifest`, estes blocos falham.
+function firstDifference(actual: string, expected: string): string {
+  const a = actual.split('\n')
+  const e = expected.split('\n')
+  for (let i = 0; i < Math.max(a.length, e.length); i++) {
+    if (a[i] !== e[i]) {
+      return `linha ${i + 1}: versionado ${JSON.stringify(a[i])}, gerado ${JSON.stringify(e[i])}. Rode npm run build:manifest.`
+    }
+  }
+  return 'diferem'
+}
+
+{
+  const label = 'ds-manifest.json é o que build:manifest gera do bundled/'
+  try {
+    const committed = readFileSync(MANIFEST_PATH, 'utf-8')
+    const expected = renderManifest(buildManifest())
+    if (committed === expected) ok(label)
+    else bad(label, firstDifference(committed, expected))
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+{
+  const meta = readDsMeta()
+  const label = `dsVersion servido pelo get_version é o do package.json (${meta.version})`
+  try {
+    const getVersion = tools.find((t) => t.name === 'get_version')!
+    const served = (await (getVersion.handler as () => Promise<{ dsVersion: string }>)()).dsVersion
+    if (served === meta.version) ok(label)
+    else bad(label, `servido ${served}`)
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+{
+  // O gerador não preenche com padrão: sem o que lê, para com ManifestBuildError.
+  const label = 'gerador para com erro quando o bundled/ não tem o que ele lê'
+  const stops = (run: () => unknown) => {
+    try {
+      run()
+      return false
+    } catch (e) {
+      return e instanceof ManifestBuildError
+    }
+  }
+  const noBundled = stops(() => buildManifest({ bundledDir: '/nao/existe', meta: { version: '0.0.0', syncedAt: '2026-01-01' } }))
+  const noCssVars = stops(() => buildCssVars('body { color: red }'))
+  if (noBundled && noCssVars) ok(label)
+  else bad(label, `bundled ausente parou: ${noBundled}; css sem @theme/:root/.dark parou: ${noCssVars}`)
+}
+
+{
+  const label = 'manifest com os tokens do DS 0.20.26'
+  try {
+    const { cssVars } = loadManifest().tokens
+    const missing = [
+      '--color-primary-hover-text',
+      '--color-switch-on',
+      '--color-switch-off',
+      '--color-border-control',
+    ].filter((name) => !(name in cssVars.root))
+    if (cssVars.root['--color-border-control'] !== '#808d9a') missing.push('--color-border-control do claro em #808d9a')
+    if (cssVars.dark['--color-switch-on'] !== 'var(--color-fips-blue-700)') missing.push('--color-switch-on do escuro em blue-700')
+    if (missing.length === 0) ok(label)
+    else bad(label, `faltando: ${missing.join('; ')}`)
   } catch (e) {
     bad(label, e instanceof Error ? e.message : String(e))
   }
@@ -305,6 +410,45 @@ for (const c of promptCases) {
     else bad(`prompt ${c.name}`, 'unexpected shape')
   } catch (e) {
     bad(`prompt ${c.name}`, e instanceof Error ? e.message : String(e))
+  }
+}
+
+// O prompt explain-token lista cores de status e manda chamar resolve_token: cada chave
+// da lista tem que existir no semantic do manifest, nos dois temas.
+{
+  const label = 'prompt explain-token só cita cores de status que o resolve_token resolve'
+  try {
+    const text = getPrompt('explain-token', { semantic: 'success' }).messages[0].content.text
+    const m = text.match(/cor de status \(([^)]+)\)/)
+    if (!m) bad(label, 'lista de cores de status não encontrada no prompt')
+    else {
+      const manifest = loadManifest()
+      const missing = m[1]
+        .split('/')
+        .flatMap((k) =>
+          (['light', 'dark'] as const)
+            .filter((mode) => !(k in manifest.tokens.semantic[mode]))
+            .map((mode) => `${k} (${mode})`),
+        )
+      if (missing.length === 0) ok(label)
+      else bad(label, `sem chave no manifest: ${missing.join(', ')}`)
+    }
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+{
+  const label = '.gitattributes fixa o ds-manifest.json em LF'
+  try {
+    const out = execFileSync('git', ['check-attr', 'eol', 'text', '--', MANIFEST_PATH], {
+      cwd: dirname(MANIFEST_PATH),
+      encoding: 'utf-8',
+    })
+    if (/eol: lf/.test(out) && /text: set/.test(out)) ok(label)
+    else bad(label, `git check-attr devolveu ${JSON.stringify(out.trim())}`)
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
   }
 }
 

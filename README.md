@@ -21,6 +21,8 @@ Conecte uma vez e a IA passa a saber **exatamente** quais componentes, variantes
 
 Outros hosts: `packages/mcp/examples/`.
 
+Quem rodou `npx -y git+https://github.com/FIPS-APP/mcp-design-system.git` tem uma cópia em `~/.npm/_npx/<hash>` e só vê a versão nova depois de apagar essa pasta.
+
 ## Estrutura
 
 Monorepo com dois pacotes publicáveis:
@@ -36,10 +38,11 @@ mcp-design-system/
 │                                         Servidor MCP propriamente dito.
 │                                         Consome o plugin acima para `validate_jsx`.
 └── packages/mcp/manifest/ds-manifest.json
-                                         Snapshot do DS-FIPS gerado pelo
-                                         `npm run build:manifest` no repo do
-                                         design system. Esse arquivo é a única
-                                         fonte de dados que o MCP lê.
+                                         Snapshot do DS-FIPS gerado aqui pelo
+                                         `npm run build:manifest`, a partir de
+                                         `packages/mcp/bundled/`. Esse arquivo é a
+                                         única fonte de dados estruturados que o
+                                         MCP lê.
 ```
 
 ## Capabilities expostas
@@ -48,7 +51,7 @@ mcp-design-system/
 
 ## Sincronia com o DS-FIPS
 
-Quando o time do DS-FIPS faz release, este repo precisa atualizar `packages/mcp/manifest/ds-manifest.json` (gerado lá via `npm run build:manifest`). O playbook completo está em [`packages/mcp/SYNC.md`](./packages/mcp/SYNC.md).
+Quando o time do DS-FIPS faz release, este repo regera `packages/mcp/bundled/` a partir da tag e roda `npm run build:manifest`, que reescreve `packages/mcp/manifest/ds-manifest.json` a partir do `bundled/`. O CI regera o manifest e falha se ele diferir do versionado. O playbook completo está em [`packages/mcp/SYNC.md`](./packages/mcp/SYNC.md).
 
 Roadmap V3: GitHub Action que dispara `repository_dispatch` daqui no release do DS-FIPS, abre PR de bump automático.
 
@@ -56,7 +59,8 @@ Roadmap V3: GitHub Action que dispara `repository_dispatch` daqui no release do 
 
 ```bash
 npm install
-npm run smoke      # 41+ tests cobrindo tools, resources, prompts e closed-loop
+npm run build:manifest   # regera packages/mcp/manifest/ds-manifest.json a partir do bundled/
+npm run smoke      # 41+ tests cobrindo tools, resources, prompts, closed-loop e o manifest
 npm run dev        # roda o server via tsx (stdio)
 npm run build      # bundle de produção (tsup)
 ```

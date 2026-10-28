@@ -194,7 +194,7 @@ const explainToken: PromptDefinition = {
             '1. Chame `resolve_token({semantic: "' + String(semantic) + '", mode: "both"})`.',
             '2. Apresente o valor em light, em dark, e o `var(--color-*)` correspondente.',
             '3. Diga quando usar (qual cenário de UI), e cite 1–2 tokens com nome similar para contraste (ex.: `success` vs `successStrong`).',
-            '4. Se for uma cor de status (success/warning/danger/info), inclua um exemplo curto de Badge ou texto onde ela aparece.',
+            '4. Se for uma cor de status (success/warning/danger/semanticInfoFg), inclua um exemplo curto de Badge ou texto onde ela aparece.',
             '5. Termine reforçando: nunca usar hex inline; sempre via CSS var.',
           ].join('\n'),
         },

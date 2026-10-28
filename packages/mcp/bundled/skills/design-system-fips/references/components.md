@@ -34,7 +34,7 @@ Reexporta `./tokens`, `cn`, **tudo** de `components/ui` (abaixo), mais:
 - `Drawer` (+ `DrawerContent`, `DrawerHeader`, `DrawerTitle`, `DrawerDescription`, `DrawerClose`)
 - `Tooltip`, `TooltipProvider`, `TooltipTrigger`, `TooltipContent`
 
-**Exportado sem página de doc:** `Switch` (Radix, `src/components/ui/switch.tsx`). A página `/docs/components/switch` foi removida na v0.11.20 — o primitive e o composite `SettingsPreferenceRow` continuam funcionando em qualquer app consumidor, só ficaram sem doc dedicada.
+**Exportado sem página de doc:** `Switch` (Radix, `src/components/ui/switch.tsx`; trilho em `--color-switch-on`/`--color-switch-off`, anel `--color-ring` cheio com recuo `--color-surface`). A página `/docs/components/switch` foi removida na v0.11.20 — o primitive e o composite `SettingsPreferenceRow` continuam funcionando em qualquer app consumidor, só ficaram sem doc dedicada.
 
 ## Button
 
@@ -190,7 +190,7 @@ Heights reais:
 Caixa do campo (`Input`, `Select`, `Textarea`, `FieldTrigger`, `InputGroup` — todos compartilham):
 
 - **Radius**: `rounded-lg` (8px) — não `rounded-xl`.
-- **Borda**: `border border-[var(--color-border-control)]` (1px, sólida, sem alpha). No claro é a mesma cor de `--color-border`; no escuro é `#666666` (3,03:1 sobre o cartão). Hover: `--color-border-strong` no claro e `--color-fg-muted` no escuro.
+- **Borda**: `border border-[var(--color-border-control)]` (1px, sólida, sem alpha). No claro é `#808d9a` (3,39:1 sobre branco); no escuro é `#666666` (3,03:1 sobre o cartão). `--color-border` segue só como divisor. Hover: `--color-fg-muted` nos dois temas.
 - **Fonte**: compact `text-[13px]`, default `text-[1.08rem]` (`Textarea` default `text-[1.02rem]`).
 - **Sombra em repouso**: nenhuma (`boxShadow: none`). Só o anel de foco (`focus-visible:ring-2 ring-[var(--color-primary)]/25`).
 - **Dark mode do foco/borda ativa**: `--color-primary` **não muda** entre light/dark neste projeto (fica `#004B9B` fixo — só `--color-border`/`--color-surface`/`--color-fg` etc. redefinem por tema). Por isso todo estado que usa `--color-primary` como acento (borda em foco, anel de foco, borda do Select aberto, borda do dropdown, opção selecionada) precisa do par manual `dark:border-[#93BDE4] dark:ring-[#93BDE4]/25` — sem isso o acento fica com baixo contraste no escuro. Não remover esses `dark:` — não são resíduo, são o substituto funcional da falta de um `--color-primary` dark.
@@ -492,7 +492,7 @@ import { HeroFileira } from '@fips-app/ds-fips'
 />
 ```
 
-`data-*` e `aria-*` de `HeroAtalho` e de cada item da `HeroFileira` chegam ao `<a>`/`<button>` (ex. `'data-tutorial': 'novo'` como alvo de tutorial). `aria-label` e `data-state` são do componente. `pressionado` (boolean) vira `aria-pressed` no `<button>`, para o atalho que liga e desliga um filtro; sem `href`, sem mudar o visual. `id`, `className`, `target` e `rel` ainda não passam.
+`data-*` e `aria-*` de `HeroAtalho` e de cada item da `HeroFileira` chegam ao `<a>`/`<button>` (ex. `'data-tutorial': 'novo'` como alvo de tutorial). `aria-label` e `data-state` são do componente. `pressionado` (boolean) vira `aria-pressed` no `<button>`, para o atalho que liga e desliga um filtro; sem `href`, sem mudar o visual. `target` e `rel` chegam ao `<a>` (só com `href`; com `target="_blank"` e sem `rel`, sai `rel="noopener noreferrer"`; `rel` informado vale como veio; no `<button>` são ignorados). `id` e `className` ainda não passam.
 
 Armadilha: o estado e o "saiu" moram na fileira, nunca em cada atalho. Com o `onMouseLeave` em cada um, o vão de 8px entre os botões zera o estado por um quadro e o principal reabre no meio do caminho. Pelo teclado, o blur testa o `relatedTarget`. No Safari esse alvo vem nulo no Tab entre irmãos e ao clicar (o Safari não foca botão no clique), e a fileira espera um instante; com o ponteiro dentro, o blur não mexe no atalho apontado. Sair com o mouse não derruba um atalho que ainda tem foco de teclado, mas foco vindo de clique do mouse não segura nada (só `:focus-visible` conta).
 

@@ -25,5 +25,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Manifest (o gerado do bundled/ tem de ser igual ao versionado)
+        run: |
+          npm run build:manifest
+          if ! git diff --exit-code -- packages/mcp/manifest/ds-manifest.json; then
+            echo "::error file=packages/mcp/manifest/ds-manifest.json::O manifest versionado difere do gerado a partir do bundled/. Rode npm run build:manifest e comite o resultado."
+            exit 1
+          fi
+
       - name: Smoke test (tools + resources + prompts + closed-loop)
         run: npm run smoke

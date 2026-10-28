@@ -89,7 +89,7 @@ Os caminhos abaixo são relativos a `packages/mcp/bundled/`. `components.md`, `f
 
 O `bundled/` não tem `src/tokens/*.ts` nem `src/components/ui/*`. Então o manifest só sabe o que o DS escreve nas referências da skill e no CSS:
 
-- Tipos `*Props` e exports que a lista do barrel não cita (hoje `DialogTrigger`, `DialogOverlay`, `DialogPortal` e os equivalentes do `Drawer`) não aparecem.
+- Tipos `*Props` e exports que a lista do barrel não cita não aparecem. Hoje são `DialogTrigger`, `DialogOverlay`, `DialogPortal` e os equivalentes do `Drawer`, mais `FieldDensity`, `FieldInset`, `AdminTableColumnItem`, `AdminTableSortDirection` e `AdminTableStatusTone`.
 - `defaultVariants` sai preenchido só para quem tem a chamada de referência na skill (hoje o `Button`).
 
 ## Quando o gerador para
@@ -110,6 +110,7 @@ O gerador nunca preenche com valor padrão: se não acha o que espera, sai com c
 |---|---|---|---|
 | Versão nova do DS, mesmo formato | regera | nenhuma | atualizar `designSystem` |
 | Renomear ou remover componente do DS | regera | **major** | breaking |
+| Token semântico do DS que muda de nome ou sai (o `resolve_token` deixa de achar a chave) | regera | nenhuma, é dado | listar as chaves que saem no corpo do PR |
 | Regra nova no plugin de governança | regera | minor | atualizar os prompts |
 | Campo novo no manifest | subir `SCHEMA_VERSION` (minor) em `scripts/ds-manifest.ts` e ajustar a interface `Manifest` do `loader.ts` | nenhuma | atualizar o smoke |
 | Campo removido ou renomeado | subir `SCHEMA_VERSION` (major) | **major** | breaking |

@@ -6,6 +6,8 @@
  */
 
 import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { dirname } from 'node:path'
 import { tools } from '../src/tools/index.js'
 import { listResources, listResourceTemplates, readResource } from '../src/resources/index.js'
 import { listPrompts, getPrompt } from '../src/prompts/index.js'
@@ -408,6 +410,45 @@ for (const c of promptCases) {
     else bad(`prompt ${c.name}`, 'unexpected shape')
   } catch (e) {
     bad(`prompt ${c.name}`, e instanceof Error ? e.message : String(e))
+  }
+}
+
+// O prompt explain-token lista cores de status e manda chamar resolve_token: cada chave
+// da lista tem que existir no semantic do manifest, nos dois temas.
+{
+  const label = 'prompt explain-token só cita cores de status que o resolve_token resolve'
+  try {
+    const text = getPrompt('explain-token', { semantic: 'success' }).messages[0].content.text
+    const m = text.match(/cor de status \(([^)]+)\)/)
+    if (!m) bad(label, 'lista de cores de status não encontrada no prompt')
+    else {
+      const manifest = loadManifest()
+      const missing = m[1]
+        .split('/')
+        .flatMap((k) =>
+          (['light', 'dark'] as const)
+            .filter((mode) => !(k in manifest.tokens.semantic[mode]))
+            .map((mode) => `${k} (${mode})`),
+        )
+      if (missing.length === 0) ok(label)
+      else bad(label, `sem chave no manifest: ${missing.join(', ')}`)
+    }
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+{
+  const label = '.gitattributes fixa o ds-manifest.json em LF'
+  try {
+    const out = execFileSync('git', ['check-attr', 'eol', 'text', '--', MANIFEST_PATH], {
+      cwd: dirname(MANIFEST_PATH),
+      encoding: 'utf-8',
+    })
+    if (/eol: lf/.test(out) && /text: set/.test(out)) ok(label)
+    else bad(label, `git check-attr devolveu ${JSON.stringify(out.trim())}`)
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
   }
 }
 

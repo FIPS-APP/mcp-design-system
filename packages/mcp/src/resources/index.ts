@@ -19,6 +19,7 @@
 import { readdirSync } from 'node:fs'
 import { loadManifest, type Manifest } from '../manifest/loader.js'
 import { readRepoFile, fileExists, bundledRoot } from './loader.js'
+import { lerSkillDoPacote } from '../manifest/pacote.js'
 
 export interface ResourceDescriptor {
   uri: string
@@ -275,7 +276,7 @@ export function readResource(uri: string): ResourceContent {
     case 'dsfips://references/source-of-truth':
       return { uri, mimeType: 'text/markdown', text: readRepoFile('skills/design-system-fips/references/source-of-truth.md') }
     case 'dsfips://skill/SKILL.md':
-      return { uri, mimeType: 'text/markdown', text: readRepoFile('skills/design-system-fips/SKILL.md') }
+      return { uri, mimeType: 'text/markdown', text: lerSkillDoPacote() ?? readRepoFile('skills/design-system-fips/SKILL.md') }
   }
 
   // Templated URIs.
@@ -306,6 +307,10 @@ export function readResource(uri: string): ResourceContent {
     const id = match[1]
     const p = m.patterns.find((p) => p.id === id)
     if (!p) throw new Error(`Pattern "${id}" not in manifest.`)
+    if (m.source === 'pacote') {
+      // No manifest do pacote `file` e a referencia viva (tela de outro repo), nao um arquivo local.
+      return { uri, mimeType: 'application/json', text: JSON.stringify(p, null, 2) }
+    }
     return { uri, mimeType: 'text/typescript', text: readRepoFile(p.file) }
   }
 

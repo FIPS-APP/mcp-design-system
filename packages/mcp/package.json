@@ -1,7 +1,7 @@
 {
   "name": "@fips-app/mcp-design-system",
   "version": "0.1.0",
-  "description": "MCP server exposing the FIPS Design System (DS-FIPS) so any AI agent (Claude Desktop, Cursor, Continue, Cline, ChatGPT) can produce interfaces faithful to the DS — tokens, governed primitives, patterns, and validation tools, all from one source of truth.",
+  "description": "MCP server exposing the FIPS Design System (DS-FIPS) so any AI agent (Claude Desktop, Cursor, Continue, Cline, ChatGPT) can produce interfaces faithful to the DS \u2014 tokens, governed primitives, patterns, and validation tools, all from one source of truth.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/server.js",
@@ -48,5 +48,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "optionalDependencies": {
+    "@fips-app/ds-fips": "0.23.1"
   }
 }

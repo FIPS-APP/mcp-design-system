@@ -60,7 +60,7 @@ const toolCases: ToolCase[] = [
     input: {},
     check: (o) => {
       const x = o as { count: number; components: { name: string }[] }
-      return x.count >= 14 && x.components.find((c) => c.name === 'Button') ? null : `got ${x.count}`
+      return x.count >= 160 && x.components.find((c) => c.name === 'Button') ? null : `got ${x.count}`
     },
   },
   {
@@ -69,15 +69,15 @@ const toolCases: ToolCase[] = [
     check: (o) => {
       const x = o as { components: { name: string }[] }
       const names = x.components.map((c) => c.name).sort().join(',')
-      return names === 'Button,Input,Select,Textarea' ? null : `got "${names}"`
+      return names === 'Button,Input,Select,TabsList,TabsTrigger,Textarea' ? null : `got "${names}"`
     },
   },
   {
     tool: 'get_component',
     input: { name: 'Button' },
     check: (o) => {
-      const x = o as { variants: { variant: string[] }; defaultVariants: { variant: string } }
-      return x.variants.variant.includes('success') && x.defaultVariants.variant === 'primary'
+      const x = o as { variants: { variant: string[]; size: string[] } }
+      return x.variants.variant.includes('success') && x.variants.variant.includes('primary') && x.variants.size.includes('md')
         ? null
         : 'Button shape unexpected'
     },
@@ -87,7 +87,7 @@ const toolCases: ToolCase[] = [
     input: { semantic: 'success', mode: 'dark' },
     check: (o) => {
       const x = o as { dark?: string }
-      return x.dark === '#8BE5AD' ? null : `dark=${x.dark}`
+      return x.dark === '#00c64c' ? null : `dark=${x.dark}`
     },
   },
   {
@@ -95,7 +95,35 @@ const toolCases: ToolCase[] = [
     input: { category: 'palette' },
     check: (o) => {
       const x = o as { tokens: Record<string, string> }
-      return x.tokens.azulProfundo === '#004B9B' ? null : 'palette wrong'
+      return x.tokens.blue900 === '#004b9b' ? null : 'palette wrong'
+    },
+  },
+  {
+    tool: 'get_version',
+    input: {},
+    check: (o) => {
+      const x = o as { dsVersion: string; manifestSource: string }
+      return x.dsVersion === '0.23.1' && x.manifestSource === 'pacote'
+        ? null
+        : `dsVersion=${x.dsVersion} source=${x.manifestSource}`
+    },
+  },
+  {
+    tool: 'get_component',
+    input: { name: 'LoginDsShell' },
+    check: (o) => {
+      const x = o as { name: string; importPath: string }
+      return x.name === 'LoginDsShell' && x.importPath === '@fips-app/ds-fips' ? null : 'LoginDsShell missing'
+    },
+  },
+  {
+    tool: 'validate_jsx',
+    input: { code: 'const x = <Button variant="destructive">Bad</Button>' },
+    check: (o) => {
+      const x = o as { ok: boolean; violations: { rule: string }[] }
+      return !x.ok && x.violations.find((v) => v.rule === 'governance/no-invalid-ds-props')
+        ? null
+        : 'expected no-invalid-ds-props violation (rule of the installed package)'
     },
   },
   {
@@ -130,7 +158,7 @@ const toolCases: ToolCase[] = [
     check: (o) => {
       const x = o as { patterns: { id: string }[] }
       const ids = x.patterns.map((p) => p.id)
-      return ids.includes('application-shell') && ids.includes('dashboard') ? null : `got ${ids.join(',')}`
+      return ids.includes('entrada-login') && ids.includes('casca') ? null : `got ${ids.join(',')}`
     },
   },
   {
@@ -254,8 +282,8 @@ for (const r of resources) {
 const sampledTemplates: string[] = [
   'dsfips://components/Button',
   'dsfips://components/Button/snippet',
-  'dsfips://patterns/dashboard',
-  'dsfips://patterns/dashboard/source',
+  'dsfips://patterns/entrada-login',
+  'dsfips://patterns/entrada-login/source',
 ]
 for (const uri of sampledTemplates) {
   try {
@@ -282,6 +310,30 @@ for (const uri of sampledTemplates) {
     if (css.includes('fonts.googleapis.com')) missing.push('sem @import do Google (ainda tem)')
     if (missing.length === 0) ok(label)
     else bad(label, missing.join('; '))
+  } catch (e) {
+    bad(label, e instanceof Error ? e.message : String(e))
+  }
+}
+
+// Reserva: sem o pacote, DS_FIPS_MANIFEST_PATH apontando para o manifest antigo
+// continua servindo (formato legado detectado pelo carregador).
+{
+  const label = 'manifest reserva (legado) por DS_FIPS_MANIFEST_PATH'
+  try {
+    const { execFileSync } = await import('node:child_process')
+    const { fileURLToPath } = await import('node:url')
+    const reserva = fileURLToPath(new URL('../manifest/ds-manifest.json', import.meta.url))
+    const out = execFileSync(
+      process.execPath,
+      [
+        '--import', 'tsx', '-e',
+        "import('./src/tools/get-version.ts').then(async (m) => console.log(JSON.stringify(await m.getVersionTool.handler())))",
+      ],
+      { env: { ...process.env, DS_FIPS_MANIFEST_PATH: reserva }, cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf-8' },
+    )
+    const v = JSON.parse(out.trim().split('\n').pop() as string) as { dsVersion: string; manifestSource: string }
+    if (v.manifestSource === 'reserva' && v.dsVersion === '0.4.1') ok(label)
+    else bad(label, JSON.stringify(v))
   } catch (e) {
     bad(label, e instanceof Error ? e.message : String(e))
   }

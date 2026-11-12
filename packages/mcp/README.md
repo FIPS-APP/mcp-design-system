@@ -85,19 +85,13 @@ Cada um devolve um pre-built turn de usuário pra bootstrapar o agente em um wor
 
 ## Como funciona
 
-O servidor lê **um único** JSON estruturado (`ds-manifest.json`) gerado pelo DS-FIPS em build:
+O servidor lê o `ai/manifest.json` do pacote `@fips-app/ds-fips` instalado (a versão que está em `node_modules` é a que ele serve; `get_version` mostra `dsVersion` e `manifestSource: "pacote"`). Sem o pacote instalado, cai no `manifest/ds-manifest.json` (DS 0.4.1) e avisa em stderr (`manifestSource: "reserva"`). `DS_FIPS_MANIFEST_PATH` aponta para outro manifest (do pacote ou legado).
 
 ```
-DS-FIPS repo                                MCP server
-─────────────                               ──────────
-src/tokens/*.ts             ┐
-src/components/ui/*.ts      │  build:manifest    ┌────────────────────┐
-src/styles/globals.css      │ ───────────────────▶│ ds-manifest.json   │
-src/composites/*            │                    │ (source of truth)   │
-src/docs/pages/patterns/*   ┘                    └─────────┬──────────┘
-                                                            │
-                                                            ▼
-                                              tools + resources + prompts
+@fips-app/ds-fips (registro)           MCP server
+────────────────────────────           ──────────
+ai/manifest.json   ──────────────────▶ adaptar.ts ──▶ tools + resources + prompts
+eslint (4 regras)  ──────────────────▶ validate_jsx
 ```
 
 O MCP nunca importa `.tsx` — o que dá ao DS liberdade pra evoluir sem quebrar consumidores.

@@ -27,6 +27,8 @@ export default defineConfig({
   // @typescript-eslint/parser EXTERNAL — they use dynamic require() and
   // can't be ESM-bundled. Those two are listed as runtime deps in the
   // root package.json so `npm install` puts them in node_modules.
+  // O design system fica fora do bundle: o servidor le a versao instalada.
+  external: ['@fips-app/ds-fips'],
   noExternal: [
     '@fips-app/eslint-plugin-ds-governance',
     '@modelcontextprotocol/sdk',

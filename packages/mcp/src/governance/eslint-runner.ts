@@ -8,6 +8,7 @@
 import { Linter, type ESLint } from 'eslint'
 import dsGovernance from '@fips-app/eslint-plugin-ds-governance'
 import * as tsParser from '@typescript-eslint/parser'
+import { lintDoPacote } from '../manifest/pacote.js'
 
 export interface Violation {
   rule: string
@@ -20,6 +21,13 @@ export interface Violation {
 }
 
 const linter = new Linter({ configType: 'flat' })
+
+// Com o pacote instalado, valida com as regras dele (as mesmas do `fips-ds check`
+// e do lint dos apps). Sem o pacote, cai no plugin local, so com no-visual-overrides.
+const plugin = (lintDoPacote?.plugin ?? dsGovernance) as unknown as ESLint.Plugin
+const regras: Linter.RulesRecord = Object.fromEntries(
+  (lintDoPacote?.rules ?? ['no-visual-overrides']).map((r) => [`governance/${r}`, 'error' as const]),
+)
 
 export function validateJsx(code: string, filename = 'snippet.tsx'): {
   ok: boolean
@@ -39,11 +47,9 @@ export function validateJsx(code: string, filename = 'snippet.tsx'): {
           },
         },
         plugins: {
-          governance: dsGovernance as unknown as ESLint.Plugin,
+          governance: plugin,
         },
-        rules: {
-          'governance/no-visual-overrides': 'error',
-        },
+        rules: regras,
       },
     ],
     { filename },

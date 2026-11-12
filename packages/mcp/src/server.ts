@@ -157,7 +157,7 @@ function parseArgs(argv: string[]): CliOpts {
           'With --http: Streamable HTTP transport on POST /mcp (used for remote hosting).',
           '',
           'Env:',
-          '  DS_FIPS_MANIFEST_PATH  Override path to ds-manifest.json',
+          '  DS_FIPS_MANIFEST_PATH  Override path to ai/manifest.json (or a legacy ds-manifest.json)',
           '  DS_FIPS_REPO_ROOT      Override repo root (used by resource readers)',
         ].join('\n') + '\n',
       )
@@ -217,7 +217,7 @@ async function main() {
   const manifest = loadManifest()
 
   process.stderr.write(
-    `@fips-app/mcp-design-system v0.1.0 ready — DS-FIPS ${manifest.dsVersion} (manifest @ ${manifest.generatedAt}), ${tools.length} tools, ${listResources().length} resources, ${listPrompts().length} prompts.\n`,
+    `@fips-app/mcp-design-system v0.1.0 ready — DS-FIPS ${manifest.dsVersion} (${manifest.source ?? 'reserva'}, manifest @ ${manifest.generatedAt}), ${tools.length} tools, ${listResources().length} resources, ${listPrompts().length} prompts.\n`,
   )
 
   if (opts.http) await startHttp(opts.port, opts.host)

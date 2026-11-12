@@ -9,7 +9,7 @@ export const getPatternTool = {
     .object({
       id: z
         .string()
-        .describe('Pattern id, e.g. "application-shell", "dashboard", "data-listing", "form-workspace", "modal-workflow", "hero-header", "hero-banner".'),
+        .describe('Pattern id, e.g. "entrada-login", "casca", "home", "banner-das-telas-internas", "formulario-execucao-editor", "lista-que-colapsa-no-celular".'),
     })
     .describe('Pattern id.'),
   async handler({ id }: { id: string }) {

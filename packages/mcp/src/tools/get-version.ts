@@ -14,6 +14,7 @@ export const getVersionTool = {
       manifestSchemaVersion: manifest.schemaVersion,
       dsVersion: manifest.dsVersion,
       manifestGeneratedAt: manifest.generatedAt,
+      manifestSource: manifest.source ?? 'reserva',
     }
   },
 }

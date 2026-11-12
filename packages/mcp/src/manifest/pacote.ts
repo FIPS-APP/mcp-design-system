@@ -59,7 +59,10 @@ export function lerSkillDoPacote(): string | null {
 
 async function carregarLint(): Promise<PacoteLint | null> {
   try {
-    const mod = (await import('@fips-app/ds-fips/eslint')) as unknown as {
+    // Especificador em variavel: o tsc nao resolve o modulo, entao o typecheck
+    // nao depende do pacote (dependencia opcional) estar instalado.
+    const especificador = '@fips-app/ds-fips/eslint'
+    const mod = (await import(especificador)) as {
       default: ESLint.Plugin & { rules: Record<string, unknown> }
       GOVERNED_COMPONENTS: Set<string>
       VISUAL_OVERRIDE_PATTERN: RegExp
